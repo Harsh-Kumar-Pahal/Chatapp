@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat App</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.0/firebase-auth-compat.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #ffffff;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0;
+            height: 100%;
+            display: flex;
+            margin-top: -5px;
+            flex-direction: column;
+        }
+        .auth-section, .chat-section {
+            background: white;
+            padding: 5px;
+            margin: 20px;
+            box-shadow: 1px 1px 2px #ccc;
+        }
+        .auth-section {
+            width: 300px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 10;
+        }
+        .auth-section input {
+            width: 100%;
+            box-sizing: border-box;
+        }
+        input, button {
+            padding: 6px;
+            margin: 8px 0;
+            border: 1px solid #ccc;
+            border-radius: 20px;
+            font-size: 16px;
+        }
+        input {
+            background-color: #fff;
+            border: 1px solid #dadce0;
+        }
+        button {
+            background: #0084ff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        button:hover {
+            background: #00488c;
+        }
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            background: url('https://www.transparenttextures.com/patterns/whatsapp-bg.png');
+            background-size: cover;
+            box-shadow: 1px -1px 6px #ccc inset;
+        }
+        .message {
+            margin: 6px 0;
+            padding: 8px 12px;
+            max-width: 70%;
+            position: relative;
+            display: inline-block;
+            word-wrap: break-word;
+            border-radius: 16px;
+            font-size: 14.2px;
+            line-height: 1.4;
+            box-shadow: 0 1px 0.5px rgba(0,0,0,0.4) inset;
+        }
+        .sent {
+            background: #0077ff;
+            color: rgb(255, 255, 255);
+            margin-left: auto;
+            border-bottom-right-radius: 0px;
+            float: right;
+            clear: both;
+        }
+        .received {
+            background: #b7b7b7;
+            color: rgb(255, 255, 255);
+            border-bottom-left-radius: 0px;
+            margin-right: auto;
+            float: left;
+            clear: both;
+        }
+        .timestamp {
+            font-size: 11px;
+            color: #000000;
+            margin-left: 10px;
+            float: right;
+            position: relative;
+            bottom: -2px;
+        }
+        .error {
+            color: #d93025;
+            font-size: 14px;
+            text-align: center;
+        }
+        .delete-btn {
+            position: absolute;
+            right: -10px;
+            top: -5px;
+            width: 20px;
+            height: 20px;
+            padding: 0;
+            background: #ef1303;
+            border-radius: 50%;
+            font-size: 12px;
+            line-height: 20px;
+            cursor: pointer;
+            color: white;
+        }
+        .delete-btn:hover {
+            background: #b71c1c;
+        }
+        .chat-section {
+            background: #f8f9fa;
+            padding-top: 10px;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        .chat-section input[type="text"] {
+            width: 95%;
+            display: inline-block;
+            margin-right: 10px;
+        }
+        #searchResult {
+            background: #0080ff;
+            color: white;
+            padding: 4px;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .input-container {
+            display: flex;
+            padding: 10px;
+            background: #f8f9fa;
+        }
+        .search-container {
+            display: flex;
+            padding: 10px;
+            background: #f8f9fa;
+        }
+        .video-call-container {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 20;
+        }
+        .video-grid {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            justify-content: center;
+            align-items: center;
+        }
+        .video-container {
+            width: 100%;
+            max-width: 400px;
+            margin: 10px;
+        }
+        .video-container video {
+            width: 100%;
+            height: auto;
+            border-radius: 10px;
+            background: black;
+            object-fit: cover; /* Ensure video fills container */
+        }
+        .controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+        }
+        .control-button {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .call-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 30;
+            text-align: center;
+        }
+        .call-popup button {
+            margin-top: 10px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                margin: 0;
+                padding: 0;
+            }
+            .auth-section, .chat-section {
+                margin: 0;
+                padding: 10px;
+                border-radius: 0;
+            }
+            .auth-section {
+                width: 100%;
+                height: auto;
+                top: 0;
+                left: 0;
+                transform: none;
+                position: fixed;
+            }
+            .chat-section {
+                padding-top: 0;
+            }
+            .messages {
+                height: auto;
+            }
+            .chat-section input[type="text"] {
+                width: 90%;
+            }
+            .search-container, .input-container {
+                padding: 5px;
+            }
+            .video-grid {
+                flex-direction: column;
+                height: 100vh;
+            }
+            .video-container {
+                max-width: 100%;
+                height: 50%; /* Split screen evenly on mobile */
+            }
+            .video-container video {
+                height: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="auth-section" id="authSection">
+            <input type="email" id="email" placeholder="Email" required>
+            <input type="password" id="password" placeholder="Password" required>
+            <button onclick="signup()">Sign Up</button>
+            <button onclick="login()">Login</button>
+            <div id="authStatus" class="error"></div>
+        </div>
+
+        <div class="chat-section" id="chatSection" style="display: none;">
+            <div class="search-container">
+                <input type="email" id="searchInput" placeholder="Search by email">
+                <button onclick="searchUser()" style="width: 80px;">Search</button>
+                <button onclick="startVideoCall()" style="width: 80px; background: #00c853;"><i class="fas fa-video"></i> Call</button>
+                <button onclick="logout()" style="background: transparent; color: #d93025; border: 1px solid #d93025; width: 80px; margin-left: 10px;">Logout</button>
+            </div>
+            <div id="searchResult" style="margin: 0;"></div>
+            <div class="messages" id="messages">Welcome</div>
+            <div class="input-container">
+                <input type="text" id="messageInput" placeholder="Type a message">
+                <button onclick="sendMessage()" style="width: 37px; font-size: 20px; font-weight: bold; border-radius: 100px; background-color: rgb(0, 200, 0);">↑</button>
+            </div>
+        </div>
+
+        <div id="videoCallContainer" class="video-call-container">
+            <div class="video-grid">
+                <div class="video-container">
+                    <video id="localVideo" autoplay playsinline muted></video>
+                </div>
+                <div class="video-container">
+                    <video id="remoteVideo" autoplay playsinline></video>
+                </div>
+            </div>
+            <div id="controls" class="controls">
+                <button class="control-button" id="muteButton" title="Mute Audio"><i class="fa-solid fa-microphone fa-xl" style="color: rgb(0, 145, 255);"></i></button>
+                <button class="control-button" id="hangupButton" title="End Call"><i class="fa-solid fa-phone fa-xl" style="color: red; transform: rotate(135deg);"></i></button>
+                <button class="control-button" id="videoButton" title="Stop Video"><i class="fa-solid fa-video fa-xl" style="color: rgb(0, 255, 81);"></i></button>
+                <button class="control-button" title="Flip Video" onclick="backCamera()"><i class="fa-solid fa-repeat fa-xl" style="color: #ffffff;"></i></button>
+            </div>
+        </div>
+
+        <div id="callPopup" class="call-popup" style="display: none;">
+            <p id="callMessage"></p>
+            <button onclick="joinVideoCall()">Join Call</button>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyA8hSMoS0eJwV95-150YLYa7-BiEBzQRE0",
+            authDomain: "airx-9a82d.firebaseapp.com",
+            projectId: "airx-9a82d",
+            storageBucket: "airx-9a82d.appspot.com",
+            messagingSenderId: "375800409271",
+            appId: "1:375800409271:web:2ab2fd39a257874eb87132",
+            measurementId: "G-0S0Z53KH4E"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.database();
+        let currentUser = null;
+        let chatPartner = null;
+        let currentChatId = null;
+
+        const configuration = {
+            iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' }
+            ]
+        };
+        let peerConnection;
+        let localStream;
+        let roomId;
+        let isAudioMuted = false;
+        let isVideoOff = false;
+        let backCam = 0;
+
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                currentUser = user;
+                document.getElementById('authSection').style.display = 'none';
+                document.getElementById('chatSection').style.display = 'flex';
+                saveUserToDatabase(user);
+                listenForIncomingCalls();
+            } else {
+                currentUser = null;
+                chatPartner = null;
+                currentChatId = null;
+                document.getElementById('authSection').style.display = 'block';
+                document.getElementById('chatSection').style.display = 'none';
+                document.getElementById('messages').innerHTML = '';
+                document.getElementById('searchResult').textContent = '';
+                hangup();
+            }
+        });
+
+        function signup() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            auth.createUserWithEmailAndPassword(email, password)
+                .catch((error) => {
+                    document.getElementById('authStatus').textContent = error.message;
+                });
+        }
+
+        function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            auth.signInWithEmailAndPassword(email, password)
+                .catch((error) => {
+                    document.getElementById('authStatus').textContent = error.message;
+                });
+        }
+
+        function saveUserToDatabase(user) {
+            const userRef = db.ref('users/' + user.uid);
+            userRef.set({
+                email: user.email,
+                lastLogin: firebase.database.ServerValue.TIMESTAMP
+            });
+        }
+
+        async function searchUser() {
+            const searchEmail = document.getElementById('searchInput').value.trim();
+            if (!searchEmail || !currentUser) return;
+
+            try {
+                const snapshot = await db.ref('users').orderByChild('email').equalTo(searchEmail).once('value');
+                if (snapshot.exists()) {
+                    const userData = snapshot.val();
+                    const userId = Object.keys(userData)[0];
+                    if (userId === currentUser.uid) {
+                        document.getElementById('searchResult').textContent = "Can't chat with yourself";
+                        return;
+                    }
+                    chatPartner = {
+                        uid: userId,
+                        email: userData[userId].email
+                    };
+                    currentChatId = [currentUser.uid, chatPartner.uid].sort().join('_');
+                    document.getElementById('searchResult').textContent = `Chatting with: ${chatPartner.email}`;
+                    loadMessages();
+                } else {
+                    document.getElementById('searchResult').textContent = 'User not found';
+                    chatPartner = null;
+                    currentChatId = null;
+                    document.getElementById('messages').innerHTML = '';
+                }
+            } catch (error) {
+                console.error('Search error:', error);
+                document.getElementById('searchResult').textContent = 'Error searching user';
+            }
+        }
+
+        function sendMessage() {
+            const message = document.getElementById('messageInput').value.trim();
+            if (!message || !chatPartner || !currentChatId || !currentUser) return;
+
+            db.ref(`chats/${currentChatId}`).push({
+                sender: currentUser.uid,
+                message: message,
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            })
+            .then(() => {
+                document.getElementById('messageInput').value = '';
+            })
+            .catch((error) => {
+                console.error('Send message error:', error);
+            });
+        }
+
+        function loadMessages() {
+            if (!currentChatId) return;
+
+            const messagesDiv = document.getElementById('messages');
+            db.ref(`chats/${currentChatId}`).off();
+            db.ref(`chats/${currentChatId}`).on('value', (snapshot) => {
+                messagesDiv.innerHTML = '';
+                if (snapshot.exists()) {
+                    snapshot.forEach((child) => {
+                        const data = child.val();
+                        const messageClass = data.sender === currentUser.uid ? 'sent' : 'received';
+                        const time = new Date(data.timestamp).toLocaleTimeString('en-US', {
+                            hour: 'numeric',
+                            minute: '2-digit',
+                            hour12: true
+                        });
+                        const deleteButton = data.sender === currentUser.uid ? 
+                            `<button class="delete-btn" onclick="deleteMessage('${child.key}')">×</button>` : '';
+                        messagesDiv.innerHTML += `
+                            <div class="message ${messageClass}" style="position: relative;">
+                                ${data.message}
+                                <span class="timestamp">${time}</span>
+                                ${deleteButton}
+                            </div>`;
+                    });
+                    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+                }
+            }, (error) => {
+                console.error('Load messages error:', error);
+            });
+        }
+
+        function deleteMessage(messageId) {
+            if (!currentChatId || !messageId || !currentUser) return;
+            db.ref(`chats/${currentChatId}/${messageId}`).remove()
+                .catch((error) => {
+                    console.error('Delete message error:', error);
+                });
+        }
+
+        function logout() {
+            auth.signOut()
+                .catch((error) => {
+                    console.error('Logout error:', error);
+                });
+        }
+
+        async function startVideoCall() {
+            if (!chatPartner || !currentUser) {
+                alert("Please select a chat partner first!");
+                return;
+            }
+
+            roomId = chatPartner.email.split('@')[0];
+
+            try {
+                // Use more permissive constraints for mobile compatibility
+                const constraints = {
+                    video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } },
+                    audio: true
+                };
+                localStream = await navigator.mediaDevices.getUserMedia(constraints);
+                document.getElementById('localVideo').srcObject = localStream;
+
+                peerConnection = new RTCPeerConnection(configuration);
+                setupPeerConnection();
+
+                localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+
+                const offer = await peerConnection.createOffer();
+                await peerConnection.setLocalDescription(offer);
+
+                await db.ref(`calls/${roomId}`).set({
+                    caller: currentUser.email,
+                    offer: { type: offer.type, sdp: offer.sdp },
+                    timestamp: firebase.database.ServerValue.TIMESTAMP
+                });
+
+                db.ref(`calls/${roomId}/answer`).on('value', async snapshot => {
+                    const answer = snapshot.val();
+                    if (answer && !peerConnection.currentRemoteDescription) {
+                        await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
+                    }
+                });
+
+                showVideoCallUI();
+            } catch (error) {
+                console.error('Error starting video call:', error);
+                alert(`Failed to start video call: ${error.message}`);
+            }
+        }
+
+        function listenForIncomingCalls() {
+            if (!currentUser) return;
+
+            db.ref('calls').on('child_added', (snapshot) => {
+                const callData = snapshot.val();
+                const callId = snapshot.key;
+                if (callData.caller !== currentUser.email && callId === currentUser.email.split('@')[0]) {
+                    document.getElementById('callMessage').textContent = `${callData.caller} is calling you!`;
+                    document.getElementById('callPopup').style.display = 'block';
+                    roomId = callId;
+                }
+            });
+        }
+
+        async function joinVideoCall() {
+            try {
+                const constraints = {
+                    video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } },
+                    audio: true
+                };
+                localStream = await navigator.mediaDevices.getUserMedia(constraints);
+                document.getElementById('localVideo').srcObject = localStream;
+
+                const snapshot = await db.ref(`calls/${roomId}`).get();
+                const callData = snapshot.val();
+                if (!callData || !callData.offer) {
+                    alert('Call not found');
+                    return;
+                }
+
+                peerConnection = new RTCPeerConnection(configuration);
+                setupPeerConnection();
+
+                localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+
+                await peerConnection.setRemoteDescription(new RTCSessionDescription(callData.offer));
+
+                const answer = await peerConnection.createAnswer();
+                await peerConnection.setLocalDescription(answer);
+
+                await db.ref(`calls/${roomId}/answer`).set({
+                    type: answer.type,
+                    sdp: answer.sdp
+                });
+
+                document.getElementById('callPopup').style.display = 'none';
+                showVideoCallUI();
+            } catch (error) {
+                console.error('Error joining video call:', error);
+                alert(`Failed to join video call: ${error.message}`);
+            }
+        }
+
+        function setupPeerConnection() {
+            peerConnection.onicecandidate = event => {
+                if (event.candidate) {
+                    db.ref(`calls/${roomId}/candidates/${Date.now()}`).set({
+                        candidate: event.candidate.toJSON()
+                    });
+                }
+            };
+
+            peerConnection.ontrack = event => {
+                if (document.getElementById('remoteVideo').srcObject !== event.streams[0]) {
+                    document.getElementById('remoteVideo').srcObject = event.streams[0];
+                }
+            };
+
+            peerConnection.oniceconnectionstatechange = () => {
+                console.log('ICE Connection State:', peerConnection.iceConnectionState);
+                if (peerConnection.iceConnectionState === 'disconnected' || peerConnection.iceConnectionState === 'failed') {
+                    hangup();
+                }
+            };
+
+            db.ref(`calls/${roomId}/candidates`).on('child_added', snapshot => {
+                const data = snapshot.val();
+                if (data && data.candidate) {
+                    peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate)).catch(error => {
+                        console.error('Error adding ICE candidate:', error);
+                    });
+                }
+            });
+        }
+
+        async function backCamera() {
+            try {
+                const currentFacingMode = backCam === 0 ? "user" : "environment";
+                const newFacingMode = currentFacingMode === "user" ? "environment" : "user";
+                const constraints = {
+                    video: { facingMode: newFacingMode, width: { ideal: 1280 }, height: { ideal: 720 } },
+                    audio: true
+                };
+
+                const newStream = await navigator.mediaDevices.getUserMedia(constraints);
+                if (localStream) {
+                    localStream.getTracks().forEach(track => track.stop());
+                }
+
+                if (peerConnection) {
+                    const [videoTrack] = newStream.getVideoTracks();
+                    const senders = peerConnection.getSenders();
+                    const videoSender = senders.find(sender => sender.track?.kind === 'video');
+                    if (videoSender) await videoSender.replaceTrack(videoTrack);
+                }
+
+                localStream = newStream;
+                document.getElementById('localVideo').srcObject = newStream;
+                backCam = backCam === 0 ? 1 : 0;
+
+                if (isAudioMuted) localStream.getAudioTracks()[0].enabled = false;
+                if (isVideoOff) localStream.getVideoTracks()[0].enabled = false;
+            } catch (error) {
+                console.error("Error switching camera:", error);
+                alert("Failed to switch camera: " + error.message);
+            }
+        }
+
+        function toggleAudio() {
+            if (localStream) {
+                const audioTrack = localStream.getAudioTracks()[0];
+                if (audioTrack) {
+                    isAudioMuted = !isAudioMuted;
+                    audioTrack.enabled = !isAudioMuted;
+                    document.getElementById('muteButton').innerHTML = isAudioMuted ? 
+                        `<i class="fa-solid fa-microphone-slash fa-xl" style="color: #ff2e2e;"></i>` : 
+                        `<i class="fa-solid fa-microphone fa-xl" style="color: rgb(0, 145, 255);"></i>`;
+                }
+            }
+        }
+
+        function toggleVideo() {
+            if (localStream) {
+                const videoTrack = localStream.getVideoTracks()[0];
+                if (videoTrack) {
+                    isVideoOff = !isVideoOff;
+                    videoTrack.enabled = !isVideoOff;
+                    document.getElementById('videoButton').innerHTML = isVideoOff ? 
+                        `<i class="fa-solid fa-video-slash fa-xl" style="color: #ff1f1f;"></i>` : 
+                        `<i class="fa-solid fa-video fa-xl" style="color: rgb(0, 255, 81);"></i>`;
+                }
+            }
+        }
+
+        function hangup() {
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+            }
+            if (peerConnection) {
+                peerConnection.close();
+            }
+            if (roomId) {
+                db.ref(`calls/${roomId}`).remove();
+            }
+            localStream = null;
+            peerConnection = null;
+            roomId = null;
+            isAudioMuted = false;
+            isVideoOff = false;
+            document.getElementById('localVideo').srcObject = null;
+            document.getElementById('remoteVideo').srcObject = null;
+            document.getElementById('videoCallContainer').style.display = 'none';
+            document.getElementById('callPopup').style.display = 'none';
+        }
+
+        function showVideoCallUI() {
+            document.getElementById('videoCallContainer').style.display = 'block';
+        }
+
+        document.getElementById('muteButton').addEventListener('click', toggleAudio);
+        document.getElementById('videoButton').addEventListener('click', toggleVideo);
+        document.getElementById('hangupButton').addEventListener('click', hangup);
+
+        window.addEventListener('beforeunload', hangup);
+
+        // Check WebRTC support
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !RTCPeerConnection) {
+            alert('Your browser does not support WebRTC, which is required for video calls.');
+        }
+    </script>
+</body>
+</html>
