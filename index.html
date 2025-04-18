@@ -193,9 +193,8 @@
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
-            max-width: 100%; /* Adjust as needed */
+            max-width: 100%;
         }
-
 
         .message-row {
             display: flex;
@@ -220,7 +219,6 @@
             word-wrap: break-word;
             position: relative;
             margin: 2px 0;
-
         }
 
         .sent .message {
@@ -249,11 +247,11 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            position: sticky; /* or fixed */
+            position: sticky;
             bottom: 0;
             left: 0;
             right: 0;
-            z-index: 10; /* Ensure it's above other content */
+            z-index: 10;
         }
 
         .message-input {
@@ -263,7 +261,7 @@
             min-height: 36px;
             max-height: 100px;
             resize: none;
-            overflow-y: auto; /* Add vertical scroll for long text */
+            overflow-y: auto;
         }
 
         .send-button {
@@ -301,7 +299,6 @@
         }
 
         #searchResult {
-            /* padding: 8px 16px; */
             display: none;
             font-size: 15px;
             color: var(--secondary-text);
@@ -334,52 +331,50 @@
             flex-direction: column;
             height: 100%;
             justify-content: center;
-            align-items: center; /* Center items horizontally */
+            align-items: center;
             gap: 16px;
         }
 
         .video-container {
-            width: 100%; /* Take full width of video-grid */
-            height: 100%; /* Take full height of video-grid */
+            width: 100%;
+            height: 100%;
             position: relative;
         }
 
         .video-container#remoteVideoContainer {
-            /* Remote video container takes full screen */
-            position: absolute; /* To cover the entire video-grid */
+            position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: 1; /* Ensure remote video is behind local video */
+            z-index: 1;
         }
 
         .video-container#remoteVideoContainer video {
             width: 100%;
             height: 100%;
-            border-radius: 0; /* Removed border radius for full screen remote video */
+            border-radius: 0;
             background: black;
             object-fit: cover;
         }
 
-        #localVideoContainer { /* Container for local video */
+        #localVideoContainer {
             position: absolute;
             bottom: 20px;
             right: 20px;
-            width: 120px;  /* Smaller size */
-            height: 160px; /* Adjusted height */
+            width: 120px;
+            height: 160px;
             border-radius: 16px;
-            overflow: hidden; /* Clip to rounded corners */
-            z-index: 2; /* Ensure local video is on top of remote video */
+            overflow: hidden;
+            z-index: 2;
         }
 
         #localVideoContainer video {
-            position: relative; /* To work within container */
+            position: relative;
             width: 100%;
             height: 100%;
             object-fit: cover;
         }
-
 
         .controls {
             position: absolute;
@@ -392,7 +387,7 @@
             backdrop-filter: blur(10px);
             padding: 12px;
             border-radius: 24px;
-            z-index: 3; /* Ensure controls are on top of videos */
+            z-index: 3;
         }
 
         .control-button {
@@ -432,8 +427,12 @@
 
         .call-popup button {
             border-radius: 10px;
+            margin: 5px;
         }
 
+        .reject-button {
+            background-color: var(--error-color);
+        }
 
         @media (max-width: 600px) {
             .message {
@@ -490,10 +489,10 @@
                         <svg width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                           <path d="M15 10L19.5528 6.72361C20.2177 6.19116 21 6.63973 21 7.44721V16.5528C21 17.3603 20.2177 17.8088 19.5528 17.2764L15 14M5 18H13C14.1046 18 15 17.1046 15 16V8C15 6.89543 14.1046 6 13 6H5C3.89543 6 3 6.89543 3 8V16C3 17.1046 3.89543 18 5 18Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
-                      </button>
-                      <button style="color: red;" class="header-button" onclick="logout()">
+                    </button>
+                    <button style="color: red;" class="header-button" onclick="logout()">
                         Logout
-                      </button>
+                    </button>
                 </div>
             </div>
 
@@ -528,13 +527,14 @@
                 <button class="control-button" id="muteButton" title="Mute Audio"><i class="fa-solid fa-microphone fa-lg" style="color: #ffffff;"></i></button>
                 <button class="control-button" id="hangupButton" title="End Call"><i class="fa-solid fa-phone fa-lg" style="color: #ff3b30; transform: rotate(135deg);"></i></button>
                 <button class="control-button" id="videoButton" title="Stop Video"><i class="fa-solid fa-video fa-lg" style="color: #ffffff;"></i></button>
-                <button class="control-button" title="Flip Camera" onclick="backCamera()"><i class="fa-solid fa-repeat fa-lg" style="color: #ffffff;"></i></button>
+                <button class="control-button" title="Flip Camera" onclick="switchCamera()"><i class="fa-solid fa-repeat fa-lg" style="color: #ffffff;"></i></button>
             </div>
         </div>
 
         <div id="callPopup" class="call-popup" style="display: none;">
             <p id="callMessage"></p>
             <button onclick="joinVideoCall()">Join Call</button>
+            <button class="reject-button" onclick="rejectCall()">Reject</button>
         </div>
     </div>
 
@@ -555,8 +555,8 @@
         let currentUser = null;
         let chatPartner = null;
         let currentChatId = null;
-        let chatListCache = {}; // Cache for chat list data
-        let isChatListLoading = false; // Flag to prevent multiple loadChatList calls
+        let chatListCache = {};
+        let isChatListLoading = false;
 
         const configuration = {
             iceServers: [
@@ -564,13 +564,14 @@
                 { urls: 'stun:stun1.l.google.com:19302' }
             ]
         };
-        let peerConnection;
-        let localStream;
-        let roomId;
+        let peerConnection = null;
+        let localStream = null;
+        let remoteStream = null;
+        let callId = null;
         let isAudioMuted = false;
         let isVideoOff = false;
-        let backCam = 0;
-
+        let currentFacingMode = 'user';
+        let pendingIceCandidates = [];
 
         auth.onAuthStateChanged((user) => {
             if (user) {
@@ -579,7 +580,7 @@
                 document.getElementById('chatSection').style.display = 'flex';
                 saveUserToDatabase(user);
                 listenForIncomingCalls();
-                loadChatList(); // Load chat list on login
+                loadChatList();
             } else {
                 currentUser = null;
                 chatPartner = null;
@@ -587,14 +588,14 @@
                 document.getElementById('authSection').style.display = 'block';
                 document.getElementById('chatSection').style.display = 'none';
                 document.getElementById('messages').innerHTML = '';
-                document.getElementById('chatList').innerHTML = ''; // Clear chat list
+                document.getElementById('chatList').innerHTML = '';
                 document.getElementById('searchResult').textContent = '';
                 document.getElementById('chatTitle').textContent = 'Messages';
-                document.getElementById('messages').style.display = 'none'; // Hide messages area
-                document.getElementById('inputArea').style.display = 'none'; // Hide input area
-                document.getElementById('backButton').style.display = 'none'; // Hide back button
-                document.getElementById('searchContainer').style.display = 'none'; // Hide search box
-                hangup();
+                document.getElementById('messages').style.display = 'none';
+                document.getElementById('inputArea').style.display = 'none';
+                document.getElementById('backButton').style.display = 'none';
+                document.getElementById('searchContainer').style.display = 'none';
+                cleanupCall();
             }
         });
 
@@ -630,6 +631,7 @@
 
             try {
                 const snapshot = await db.ref('users').orderByChild('email').equalTo(searchEmail).once('value');
+                document.getElementById('searchResult').style.display = 'block';
                 if (snapshot.exists()) {
                     const userData = snapshot.val();
                     const userId = Object.keys(userData)[0];
@@ -644,11 +646,11 @@
                     currentChatId = [currentUser.uid, chatPartner.uid].sort().join('_');
                     document.getElementById('searchResult').textContent = `Connected with ${chatPartner.email}`;
                     document.getElementById('chatTitle').textContent = chatPartner.email.split('@')[0];
-                    document.getElementById('chatList').style.display = 'none'; // Hide chat list
-                    document.getElementById('messages').style.display = 'flex'; // Show messages area
-                    document.getElementById('inputArea').style.display = 'flex'; // Show input area
-                    document.getElementById('backButton').style.display = 'block'; // Show back button
-                    document.getElementById('searchContainer').style.display = 'none'; // Hide search box when chat is open
+                    document.getElementById('chatList').style.display = 'none';
+                    document.getElementById('messages').style.display = 'flex';
+                    document.getElementById('inputArea').style.display = 'flex';
+                    document.getElementById('backButton').style.display = 'block';
+                    document.getElementById('searchContainer').style.display = 'none';
                     loadMessages();
                 } else {
                     document.getElementById('searchResult').textContent = 'User not found';
@@ -656,10 +658,10 @@
                     currentChatId = null;
                     document.getElementById('messages').innerHTML = '';
                     document.getElementById('chatTitle').textContent = 'Messages';
-                    document.getElementById('messages').style.display = 'none'; // Hide messages area
-                    document.getElementById('inputArea').style.display = 'none'; // Hide input area
-                    document.getElementById('backButton').style.display = 'none'; // Hide back button
-                    document.getElementById('searchContainer').style.display = 'flex'; // Show search box on chat list
+                    document.getElementById('messages').style.display = 'none';
+                    document.getElementById('inputArea').style.display = 'none';
+                    document.getElementById('backButton').style.display = 'none';
+                    document.getElementById('searchContainer').style.display = 'flex';
                 }
             } catch (error) {
                 console.error('Search error:', error);
@@ -668,126 +670,121 @@
         }
 
         function sendMessage(event) {
-    if (event) {
-        event.preventDefault();
-    }
-    
-    const message = document.getElementById('messageInput').value.trim();
-    if (!message || !chatPartner || !currentChatId || !currentUser) return;
+            if (event) {
+                event.preventDefault();
+            }
 
-    db.ref(`chats/${currentChatId}`)
-        .push({
-            sender: currentUser.uid,
-            message: message,
-            timestamp: firebase.database.ServerValue.TIMESTAMP,
-        })
-        .then(() => {
-            document.getElementById('messageInput').value = '';
-            updateLastMessageInChatList(currentChatId, message);
-        })
-        .catch((error) => {
-            console.error('Send message error:', error);
-            document.getElementById('searchResult').textContent = 'Failed to send message';
-        });
-}
-function loadMessages(selectedChatId = currentChatId) {
-    if (!selectedChatId) return;
-    currentChatId = selectedChatId;
+            const message = document.getElementById('messageInput').value.trim();
+            if (!message || !chatPartner || !currentChatId || !currentUser) return;
 
-    const messagesDiv = document.getElementById('messages');
-    let lastMessageKey = null; // Track the last message to avoid re-rendering unchanged messages
-
-    db.ref(`chats/${currentChatId}`).off(); // Remove previous listeners to prevent duplicates
-    db.ref(`chats/${currentChatId}`).on('value', (snapshot) => {
-        if (!snapshot.exists()) {
-            messagesDiv.innerHTML = '';
-            return;
+            db.ref(`chats/${currentChatId}`)
+                .push({
+                    sender: currentUser.uid,
+                    message: message,
+                    timestamp: firebase.database.ServerValue.TIMESTAMP,
+                })
+                .then(() => {
+                    document.getElementById('messageInput').value = '';
+                    updateLastMessageInChatList(currentChatId, message);
+                })
+                .catch((error) => {
+                    console.error('Send message error:', error);
+                    document.getElementById('searchResult').textContent = 'Failed to send message';
+                });
         }
 
-        // Only update new or changed messages to avoid flicker
-        const messages = [];
-        snapshot.forEach((child) => {
-            messages.push({ key: child.key, ...child.val() });
-        });
+        function loadMessages(selectedChatId = currentChatId) {
+            if (!selectedChatId) return;
+            currentChatId = selectedChatId;
 
-        // Sort messages by timestamp to ensure correct order
-        messages.sort((a, b) => a.timestamp - b.timestamp);
+            const messagesDiv = document.getElementById('messages');
+            let lastMessageKey = null;
 
-        // Check if the last message is new
-        const newLastMessageKey = messages.length > 0 ? messages[messages.length - 1].key : null;
-        if (lastMessageKey === newLastMessageKey) {
-            return; // Skip re-rendering if no new messages
-        }
-        lastMessageKey = newLastMessageKey;
+            db.ref(`chats/${currentChatId}`).off();
+            db.ref(`chats/${currentChatId}`).on('value', (snapshot) => {
+                if (!snapshot.exists()) {
+                    messagesDiv.innerHTML = '';
+                    return;
+                }
 
-        // Clear and re-render only if necessary
-        messagesDiv.innerHTML = '';
-        messages.forEach((data) => {
-            const messageRowClass = data.sender === currentUser.uid ? 'sent' : 'received';
-            const time = new Date(data.timestamp).toLocaleTimeString('en-US', {
-                hour: 'numeric',
-                minute: '2-digit',
-                hour12: true,
+                const messages = [];
+                snapshot.forEach((child) => {
+                    messages.push({ key: child.key, ...child.val() });
+                });
+
+                messages.sort((a, b) => a.timestamp - b.timestamp);
+
+                const newLastMessageKey = messages.length > 0 ? messages[messages.length - 1].key : null;
+                if (lastMessageKey === newLastMessageKey) {
+                    return;
+                }
+                lastMessageKey = newLastMessageKey;
+
+                messagesDiv.innerHTML = '';
+                messages.forEach((data) => {
+                    const messageRowClass = data.sender === currentUser.uid ? 'sent' : 'received';
+                    const time = new Date(data.timestamp).toLocaleTimeString('en-US', {
+                        hour: 'numeric',
+                        minute: '2-digit',
+                        hour12: true,
+                    });
+
+                    const messageElement = document.createElement('div');
+                    messageElement.className = `message-row ${messageRowClass}`;
+                    messageElement.innerHTML = `
+                        <div class="message">
+                            ${data.message}
+                            <div class="timestamp">${time}</div>
+                        </div>
+                    `;
+                    messagesDiv.appendChild(messageElement);
+                });
+
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            }, (error) => {
+                console.error('Load messages error:', error);
             });
 
-            const messageElement = document.createElement('div');
-            messageElement.className = `message-row ${messageRowClass}`;
-            messageElement.innerHTML = `
-                <div class="message">
-                    ${data.message}
-                    <div class="timestamp">${time}</div>
-                </div>
-            `;
-            messagesDiv.appendChild(messageElement);
-        });
+            const chatUsers = currentChatId.split('_');
+            const partnerUid = chatUsers.find((uid) => uid !== currentUser.uid);
+            db.ref('users/' + partnerUid).once('value', (snapshot) => {
+                if (snapshot.exists()) {
+                    chatPartner = { uid: partnerUid, email: snapshot.val().email };
+                    document.getElementById('chatTitle').textContent = chatPartner.email.split('@')[0];
+                }
+            });
 
-        messagesDiv.scrollTop = messagesDiv.scrollHeight;
-    }, (error) => {
-        console.error('Load messages error:', error);
-    });
-
-    // Update chat partner info
-    const chatUsers = currentChatId.split('_');
-    const partnerUid = chatUsers.find((uid) => uid !== currentUser.uid);
-    db.ref('users/' + partnerUid).once('value', (snapshot) => {
-        if (snapshot.exists()) {
-            chatPartner = { uid: partnerUid, email: snapshot.val().email };
-            document.getElementById('chatTitle').textContent = chatPartner.email.split('@')[0];
+            document.getElementById('chatList').style.display = 'none';
+            document.getElementById('messages').style.display = 'flex';
+            document.getElementById('inputArea').style.display = 'flex';
+            document.getElementById('backButton').style.display = 'block';
+            document.getElementById('searchContainer').style.display = 'none';
         }
-    });
 
-    document.getElementById('chatList').style.display = 'none';
-    document.getElementById('messages').style.display = 'flex';
-    document.getElementById('inputArea').style.display = 'flex';
-    document.getElementById('backButton').style.display = 'block';
-    document.getElementById('searchContainer').style.display = 'none';
-}
         async function loadChatList() {
-            if (isChatListLoading) {
-                return; // Prevent multiple calls if already loading
-            }
+            if (isChatListLoading) return;
             isChatListLoading = true;
             const chatListDiv = document.getElementById('chatList');
-            chatListDiv.innerHTML = ''; // Clear existing list **ENSURE THIS IS FIRST**
-            document.getElementById('chatTitle').textContent = 'Messages'; // Reset header title
-            document.getElementById('backButton').style.display = 'none'; // Hide back button
-            document.getElementById('chatList').style.display = 'flex'; // Show chat list
-            document.getElementById('messages').style.display = 'none'; // Hide messages area
-            document.getElementById('inputArea').style.display = 'none'; // Hide input area
-            document.getElementById('searchContainer').style.display = 'flex'; // Show search box on chat list
-            currentChatId = null; // Clear current chat context
+            chatListDiv.innerHTML = '';
+            document.getElementById('chatTitle').textContent = 'Messages';
+            document.getElementById('backButton').style.display = 'none';
+            document.getElementById('chatList').style.display = 'flex';
+            document.getElementById('messages').style.display = 'none';
+            document.getElementById('inputArea').style.display = 'none';
+            document.getElementById('searchContainer').style.display = 'flex';
+            currentChatId = null;
             chatPartner = null;
 
             const userChatsRef = db.ref('chats');
             const chats = [];
 
             try {
-                const snapshot = await userChatsRef.orderByChild('timestamp').limitToLast(100).once('value'); // Adjust limit as needed
+                const snapshot = await userChatsRef.orderByChild('timestamp').limitToLast(100).once('value');
                 if (snapshot.exists()) {
                     snapshot.forEach(chatSnapshot => {
                         const chatId = chatSnapshot.key;
                         if (chatId.includes(currentUser.uid)) {
-                            const lastMessageKey = Object.keys(chatSnapshot.val()).filter(key => key !== 'answer' && key !== 'candidates' && key !== 'caller' && key !== 'offer' && key !== 'timestamp').pop(); // Find last message key excluding call data
+                            const lastMessageKey = Object.keys(chatSnapshot.val()).filter(key => !['answer', 'candidates', 'caller', 'offer', 'timestamp'].includes(key)).pop();
                             if (lastMessageKey) {
                                 const lastMessageData = chatSnapshot.val()[lastMessageKey];
                                 const chatUsers = chatId.split('_');
@@ -803,13 +800,12 @@ function loadMessages(selectedChatId = currentChatId) {
                         }
                     });
 
-                    // Sort chats by timestamp in descending order (most recent first)
                     chats.sort((a, b) => b.timestamp - a.timestamp);
 
                     if (chats.length === 0) {
                         chatListDiv.innerHTML = '<div style="padding: 16px; text-align: center; color: var(--secondary-text);">No chats yet. Search for a user to start chatting.</div>';
                     } else {
-                        for (const chat of chats) { // Changed forEach to for...of to handle async operations in sequence if needed in future
+                        for (const chat of chats) {
                             const userSnapshot = await db.ref('users/' + chat.partnerUid).once('value');
                             if (userSnapshot.exists()) {
                                 const partnerEmail = userSnapshot.val().email;
@@ -822,7 +818,7 @@ function loadMessages(selectedChatId = currentChatId) {
                                     </div>
                                 `;
                                 chatItem.addEventListener('click', () => {
-                                    chatPartner = { uid: chat.partnerUid, email: partnerEmail }; // Set chat partner
+                                    chatPartner = { uid: chat.partnerUid, email: partnerEmail };
                                     loadMessages(chat.chatId);
                                 });
                                 chatListDiv.appendChild(chatItem);
@@ -836,47 +832,42 @@ function loadMessages(selectedChatId = currentChatId) {
                 console.error("Error loading chat list:", error);
                 chatListDiv.innerHTML = '<div style="padding: 16px; text-align: center; color: var(--error-color);">Failed to load chats. Please try again later.</div>';
             } finally {
-                isChatListLoading = false; // Reset loading flag
+                isChatListLoading = false;
             }
         }
 
-
         function updateLastMessageInChatList(chatId, message) {
-    // Skip updating chat list if user is in the current chat
-    if (document.getElementById('messages').style.display === 'flex') {
-        return; // Avoid updating chat list while in a chat to prevent flicker
-    }
+            if (document.getElementById('messages').style.display === 'flex') {
+                return;
+            }
 
-    const chatItems = document.querySelectorAll('.chat-item');
-    let targetChatItem = null;
+            const chatItems = document.querySelectorAll('.chat-item');
+            let targetChatItem = null;
 
-    chatItems.forEach((item) => {
-        const emailElement = item.querySelector('.chat-item-email');
-        if (emailElement && emailElement.textContent === chatPartner.email) {
-            targetChatItem = item;
-        }
-    });
+            chatItems.forEach((item) => {
+                const emailElement = item.querySelector('.chat-item-email');
+                if (emailElement && emailElement.textContent === chatPartner.email) {
+                    targetChatItem = item;
+                }
+            });
 
-    if (targetChatItem) {
-        const lastMessageElement = targetChatItem.querySelector('.chat-item-last-message');
-        if (lastMessageElement) {
-            lastMessageElement.textContent = message;
+            if (targetChatItem) {
+                const lastMessageElement = targetChatItem.querySelector('.chat-item-last-message');
+                if (lastMessageElement) {
+                    lastMessageElement.textContent = message;
+                }
+                const chatListDiv = document.getElementById('chatList');
+                chatListDiv.prepend(targetChatItem);
+            } else {
+                if (!currentChatId) {
+                    loadChatList();
+                }
+            }
         }
-        // Move the chat item to the top smoothly
-        const chatListDiv = document.getElementById('chatList');
-        chatListDiv.prepend(targetChatItem);
-    } else {
-        // Only reload chat list if not in a chat
-        if (!currentChatId) {
-            loadChatList();
-        }
-    }
-}
 
         function goBackToChatList() {
             loadChatList();
         }
-
 
         function logout() {
             auth.signOut()
@@ -891,11 +882,17 @@ function loadMessages(selectedChatId = currentChatId) {
                 return;
             }
 
-            roomId = chatPartner.email.split('@')[0];
+            if (peerConnection || callId) {
+                alert("A call is already in progress!");
+                return;
+            }
+
+            callId = `${currentUser.uid}_${chatPartner.uid}_${Date.now()}`;
+            pendingIceCandidates = [];
 
             try {
                 const constraints = {
-                    video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } },
+                    video: { facingMode: currentFacingMode, width: { ideal: 1280 }, height: { ideal: 720 } },
                     audio: true
                 };
                 localStream = await navigator.mediaDevices.getUserMedia(constraints);
@@ -909,16 +906,25 @@ function loadMessages(selectedChatId = currentChatId) {
                 const offer = await peerConnection.createOffer();
                 await peerConnection.setLocalDescription(offer);
 
-                await db.ref(`calls/${roomId}`).set({
+                await db.ref(`calls/${callId}`).set({
                     caller: currentUser.email,
+                    callee: chatPartner.email,
                     offer: { type: offer.type, sdp: offer.sdp },
                     timestamp: firebase.database.ServerValue.TIMESTAMP
                 });
 
-                db.ref(`calls/${roomId}/answer`).on('value', async snapshot => {
+                console.log('Offer created and sent:', offer);
+
+                db.ref(`calls/${callId}/answer`).on('value', async (snapshot) => {
                     const answer = snapshot.val();
-                    if (answer && !peerConnection.currentRemoteDescription) {
-                        await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
+                    if (answer && peerConnection.signalingState === 'have-local-offer') {
+                        try {
+                            await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
+                            console.log('Answer received and set:', answer);
+                            applyPendingIceCandidates();
+                        } catch (error) {
+                            console.error('Error setting remote description:', error);
+                        }
                     }
                 });
 
@@ -926,36 +932,46 @@ function loadMessages(selectedChatId = currentChatId) {
             } catch (error) {
                 console.error('Error starting video call:', error);
                 alert(`Failed to start video call: ${error.message}`);
+                cleanupCall();
             }
         }
 
         function listenForIncomingCalls() {
             if (!currentUser) return;
 
+            db.ref('calls').off('child_added');
             db.ref('calls').on('child_added', (snapshot) => {
                 const callData = snapshot.val();
-                const callId = snapshot.key;
-                if (callData.caller !== currentUser.email && callId === currentUser.email.split('@')[0]) {
+                const incomingCallId = snapshot.key;
+                if (callData.callee === currentUser.email && callData.caller !== currentUser.email) {
+                    callId = incomingCallId;
                     document.getElementById('callMessage').textContent = `${callData.caller} is calling you!`;
                     document.getElementById('callPopup').style.display = 'block';
-                    roomId = callId;
                 }
             });
         }
 
         async function joinVideoCall() {
+            if (peerConnection || localStream) {
+                alert("A call is already in progress!");
+                return;
+            }
+
+            pendingIceCandidates = [];
+
             try {
                 const constraints = {
-                    video: { facingMode: "user", width: { ideal: 1280 }, height: {ideal: 720 } },
+                    video: { facingMode: currentFacingMode, width: { ideal: 1280 }, height: { ideal: 720 } },
                     audio: true
                 };
                 localStream = await navigator.mediaDevices.getUserMedia(constraints);
                 document.getElementById('localVideo').srcObject = localStream;
 
-                const snapshot = await db.ref(`calls/${roomId}`).get();
+                const snapshot = await db.ref(`calls/${callId}`).get();
                 const callData = snapshot.val();
                 if (!callData || !callData.offer) {
                     alert('Call not found');
+                    cleanupCall();
                     return;
                 }
 
@@ -965,65 +981,101 @@ function loadMessages(selectedChatId = currentChatId) {
                 localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
 
                 await peerConnection.setRemoteDescription(new RTCSessionDescription(callData.offer));
+                console.log('Offer received and set:', callData.offer);
 
                 const answer = await peerConnection.createAnswer();
                 await peerConnection.setLocalDescription(answer);
+                console.log('Answer created and sent:', answer);
 
-                await db.ref(`calls/${roomId}/answer`).set({
+                await db.ref(`calls/${callId}/answer`).set({
                     type: answer.type,
                     sdp: answer.sdp
                 });
+
+                applyPendingIceCandidates();
 
                 document.getElementById('callPopup').style.display = 'none';
                 showVideoCallUI();
             } catch (error) {
                 console.error('Error joining video call:', error);
                 alert(`Failed to join video call: ${error.message}`);
+                cleanupCall();
             }
         }
 
+        function rejectCall() {
+            if (callId) {
+                db.ref(`calls/${callId}`).remove().catch(error => console.error("Error removing call:", error));
+                callId = null;
+            }
+            document.getElementById('callPopup').style.display = 'none';
+        }
+
         function setupPeerConnection() {
+            remoteStream = new MediaStream();
+            document.getElementById('remoteVideo').srcObject = remoteStream;
+
             peerConnection.onicecandidate = event => {
                 if (event.candidate) {
-                    db.ref(`calls/${roomId}/candidates/${Date.now()}`).set({
-                        candidate: event.candidate.toJSON()
-                    });
+                    db.ref(`calls/${callId}/candidates`).push({
+                        candidate: event.candidate.toJSON(),
+                        sender: currentUser.email
+                    }).catch(error => console.error("Error sending ICE candidate:", error));
                 }
             };
 
             peerConnection.ontrack = event => {
-                if (document.getElementById('remoteVideo').srcObject !== event.streams[0]) {
-                    document.getElementById('remoteVideo').srcObject = event.streams[0];
-                }
+                console.log('Received remote track:', event.track);
+                event.streams[0].getTracks().forEach(track => {
+                    remoteStream.addTrack(track);
+                });
             };
 
             peerConnection.oniceconnectionstatechange = () => {
                 console.log('ICE Connection State:', peerConnection.iceConnectionState);
                 if (peerConnection.iceConnectionState === 'disconnected' || peerConnection.iceConnectionState === 'failed') {
-                    hangup();
+                    cleanupCall();
                 }
             };
 
-            db.ref(`calls/${roomId}/candidates`).on('child_added', snapshot => {
+            db.ref(`calls/${callId}/candidates`).on('child_added', snapshot => {
                 const data = snapshot.val();
-                if (data && data.candidate) {
-                    peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate)).catch(error => {
-                        console.error('Error adding ICE candidate:', error);
-                    });
+                if (data.sender !== currentUser.email) {
+                    const candidate = new RTCIceCandidate(data.candidate);
+                    if (peerConnection.remoteDescription) {
+                        peerConnection.addIceCandidate(candidate).catch(error => {
+                            console.error('Error adding ICE candidate:', error);
+                        });
+                    } else {
+                        pendingIceCandidates.push(candidate);
+                        console.log('Queued ICE candidate:', candidate);
+                    }
                 }
             });
         }
 
-        async function backCamera() {
+        async function applyPendingIceCandidates() {
+            while (pendingIceCandidates.length > 0) {
+                const candidate = pendingIceCandidates.shift();
+                try {
+                    await peerConnection.addIceCandidate(candidate);
+                    console.log('Applied pending ICE candidate:', candidate);
+                } catch (error) {
+                    console.error('Error applying pending ICE candidate:', error);
+                }
+            }
+        }
+
+        async function switchCamera() {
             try {
-                const currentFacingMode = backCam === 0 ? "user" : "environment";
-                const newFacingMode = currentFacingMode === "user" ? "environment" : "user";
+                const newFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
                 const constraints = {
                     video: { facingMode: newFacingMode, width: { ideal: 1280 }, height: { ideal: 720 } },
                     audio: true
                 };
 
                 const newStream = await navigator.mediaDevices.getUserMedia(constraints);
+
                 if (localStream) {
                     localStream.getTracks().forEach(track => track.stop());
                 }
@@ -1032,12 +1084,14 @@ function loadMessages(selectedChatId = currentChatId) {
                     const [videoTrack] = newStream.getVideoTracks();
                     const senders = peerConnection.getSenders();
                     const videoSender = senders.find(sender => sender.track?.kind === 'video');
-                    if (videoSender) await videoSender.replaceTrack(videoTrack);
+                    if (videoSender) {
+                        await videoSender.replaceTrack(videoTrack);
+                    }
                 }
 
                 localStream = newStream;
                 document.getElementById('localVideo').srcObject = newStream;
-                backCam = backCam === 0 ? 1 : 0;
+                currentFacingMode = newFacingMode;
 
                 if (isAudioMuted) localStream.getAudioTracks()[0].enabled = false;
                 if (isVideoOff) localStream.getVideoTracks()[0].enabled = false;
@@ -1073,25 +1127,39 @@ function loadMessages(selectedChatId = currentChatId) {
             }
         }
 
-        function hangup() {
+        function cleanupCall() {
+            console.log('Cleaning up call');
             if (localStream) {
                 localStream.getTracks().forEach(track => track.stop());
+                localStream = null;
+                document.getElementById('localVideo').srcObject = null;
+            }
+            if (remoteStream) {
+                remoteStream.getTracks().forEach(track => track.stop());
+                remoteStream = null;
+                document.getElementById('remoteVideo').srcObject = null;
             }
             if (peerConnection) {
+                peerConnection.ontrack = null;
+                peerConnection.onicecandidate = null;
+                peerConnection.oniceconnectionstatechange = null;
                 peerConnection.close();
+                peerConnection = null;
             }
-            if (roomId) {
-                db.ref(`calls/${roomId}`).remove();
+            if (callId) {
+                db.ref(`calls/${callId}`).remove().catch(error => console.error("Error removing call:", error));
+                db.ref(`calls/${callId}/candidates`).off();
+                db.ref(`calls/${callId}/answer`).off();
+                callId = null;
             }
-            localStream = null;
-            peerConnection = null;
-            roomId = null;
+
             isAudioMuted = false;
             isVideoOff = false;
-            document.getElementById('localVideo').srcObject = null;
-            document.getElementById('remoteVideo').srcObject = null;
+            pendingIceCandidates = [];
             document.getElementById('videoCallContainer').style.display = 'none';
             document.getElementById('callPopup').style.display = 'none';
+            document.getElementById('muteButton').innerHTML = `<i class="fa-solid fa-microphone fa-lg" style="color: #ffffff;"></i>`;
+            document.getElementById('videoButton').innerHTML = `<i class="fa-solid fa-video fa-lg" style="color: #ffffff;"></i>`;
         }
 
         function showVideoCallUI() {
@@ -1100,27 +1168,23 @@ function loadMessages(selectedChatId = currentChatId) {
 
         document.getElementById('muteButton').addEventListener('click', toggleAudio);
         document.getElementById('videoButton').addEventListener('click', toggleVideo);
-        document.getElementById('hangupButton').addEventListener('click', hangup);
+        document.getElementById('hangupButton').addEventListener('click', cleanupCall);
         document.getElementById('backButton').addEventListener('click', goBackToChatList);
 
-       // Update the keypress event listener to pass the event
-document.getElementById('messageInput').addEventListener('keypress', function(e) {
-    if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault(); // Prevent default Enter behavior (e.g., newline)
-        sendMessage(e); // Pass the event object
-    }
-});
+        document.getElementById('messageInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage(e);
+            }
+        });
 
-        window.addEventListener('beforeunload', hangup);
+        window.addEventListener('beforeunload', () => {
+            cleanupCall();
+        });
 
-        // Check WebRTC support
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !RTCPeerConnection) {
             alert('Your browser does not support WebRTC, which is required for video calls.');
         }
-
-        // document.addEventListener('contextmenu', function(e) {
-        //   e.preventDefault();
-        // });
     </script>
 </body>
 </html>
