@@ -301,7 +301,8 @@
         }
 
         #searchResult {
-            padding: 8px 16px;
+            /* padding: 8px 16px; */
+            display: none;
             font-size: 15px;
             color: var(--secondary-text);
             text-align: center;
@@ -496,7 +497,7 @@
                 </div>
             </div>
 
-            <div class="search-container">
+            <div class="search-container" id="searchContainer">
                 <input type="email" id="searchInput" placeholder="Find a friend" class="search-input">
                 <button class="search-button" onclick="searchUser()"><i class="fas fa-search"></i></button>
             </div>
@@ -510,7 +511,7 @@
 
             <div class="input-area" id="inputArea" style="display: none;">
                 <input type="text" id="messageInput" placeholder="iMessage" class="message-input">
-                <button class="send-button" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
+                <button class="send-button" type="button" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
             </div>
         </div>
 
@@ -592,6 +593,7 @@
                 document.getElementById('messages').style.display = 'none'; // Hide messages area
                 document.getElementById('inputArea').style.display = 'none'; // Hide input area
                 document.getElementById('backButton').style.display = 'none'; // Hide back button
+                document.getElementById('searchContainer').style.display = 'none'; // Hide search box
                 hangup();
             }
         });
@@ -646,6 +648,7 @@
                     document.getElementById('messages').style.display = 'flex'; // Show messages area
                     document.getElementById('inputArea').style.display = 'flex'; // Show input area
                     document.getElementById('backButton').style.display = 'block'; // Show back button
+                    document.getElementById('searchContainer').style.display = 'none'; // Hide search box when chat is open
                     loadMessages();
                 } else {
                     document.getElementById('searchResult').textContent = 'User not found';
@@ -656,6 +659,7 @@
                     document.getElementById('messages').style.display = 'none'; // Hide messages area
                     document.getElementById('inputArea').style.display = 'none'; // Hide input area
                     document.getElementById('backButton').style.display = 'none'; // Hide back button
+                    document.getElementById('searchContainer').style.display = 'flex'; // Show search box on chat list
                 }
             } catch (error) {
                 console.error('Search error:', error);
@@ -663,74 +667,101 @@
             }
         }
 
-        function sendMessage() {
-            const message = document.getElementById('messageInput').value.trim();
-            if (!message || !chatPartner || !currentChatId || !currentUser) return;
+        function sendMessage(event) {
+    if (event) {
+        event.preventDefault();
+    }
+    
+    const message = document.getElementById('messageInput').value.trim();
+    if (!message || !chatPartner || !currentChatId || !currentUser) return;
 
-            db.ref(`chats/${currentChatId}`).push({
-                sender: currentUser.uid,
-                message: message,
-                timestamp: firebase.database.ServerValue.TIMESTAMP
-            })
-            .then(() => {
-                document.getElementById('messageInput').value = '';
-                updateLastMessageInChatList(currentChatId, message); // Update last message in chat list
-            })
-            .catch((error) => {
-                console.error('Send message error:', error);
-            });
+    db.ref(`chats/${currentChatId}`)
+        .push({
+            sender: currentUser.uid,
+            message: message,
+            timestamp: firebase.database.ServerValue.TIMESTAMP,
+        })
+        .then(() => {
+            document.getElementById('messageInput').value = '';
+            updateLastMessageInChatList(currentChatId, message);
+        })
+        .catch((error) => {
+            console.error('Send message error:', error);
+            document.getElementById('searchResult').textContent = 'Failed to send message';
+        });
+}
+function loadMessages(selectedChatId = currentChatId) {
+    if (!selectedChatId) return;
+    currentChatId = selectedChatId;
+
+    const messagesDiv = document.getElementById('messages');
+    let lastMessageKey = null; // Track the last message to avoid re-rendering unchanged messages
+
+    db.ref(`chats/${currentChatId}`).off(); // Remove previous listeners to prevent duplicates
+    db.ref(`chats/${currentChatId}`).on('value', (snapshot) => {
+        if (!snapshot.exists()) {
+            messagesDiv.innerHTML = '';
+            return;
         }
 
-        function loadMessages(selectedChatId = currentChatId) {
-            if (!selectedChatId) return;
-            currentChatId = selectedChatId;
+        // Only update new or changed messages to avoid flicker
+        const messages = [];
+        snapshot.forEach((child) => {
+            messages.push({ key: child.key, ...child.val() });
+        });
 
-            const messagesDiv = document.getElementById('messages');
-            db.ref(`chats/${currentChatId}`).off();
-            db.ref(`chats/${currentChatId}`).on('value', (snapshot) => {
-                messagesDiv.innerHTML = '';
-                if (snapshot.exists()) {
-                    snapshot.forEach((child) => {
-                        const data = child.val();
-                        const messageRowClass = data.sender === currentUser.uid ? 'sent' : 'received';
-                        const time = new Date(data.timestamp).toLocaleTimeString('en-US', {
-                            hour: 'numeric',
-                            minute: '2-digit',
-                            hour12: true
-                        });
+        // Sort messages by timestamp to ensure correct order
+        messages.sort((a, b) => a.timestamp - b.timestamp);
 
-                        const messageElement = document.createElement('div');
-                        messageElement.className = `message-row ${messageRowClass}`;
-                        messageElement.innerHTML = `
-                            <div class="message">
-                                ${data.message}
-                                <div class="timestamp">${time}</div>
-                            </div>
-                        `;
-                        messagesDiv.appendChild(messageElement);
-                    });
-                    messagesDiv.scrollTop = messagesDiv.scrollHeight;
-                }
-            }, (error) => {
-                console.error('Load messages error:', error);
-            });
-
-            // Extract chat partner email for header title
-            const chatUsers = currentChatId.split('_');
-            const partnerUid = chatUsers.find(uid => uid !== currentUser.uid);
-            db.ref('users/' + partnerUid).once('value', snapshot => {
-                if (snapshot.exists()) {
-                    chatPartner = { uid: partnerUid, email: snapshot.val().email };
-                    document.getElementById('chatTitle').textContent = chatPartner.email.split('@')[0];
-                }
-            });
-
-            document.getElementById('chatList').style.display = 'none'; // Hide chat list
-            document.getElementById('messages').style.display = 'flex'; // Show messages area
-            document.getElementById('inputArea').style.display = 'flex'; // Show input area
-            document.getElementById('backButton').style.display = 'block'; // Show back button
+        // Check if the last message is new
+        const newLastMessageKey = messages.length > 0 ? messages[messages.length - 1].key : null;
+        if (lastMessageKey === newLastMessageKey) {
+            return; // Skip re-rendering if no new messages
         }
+        lastMessageKey = newLastMessageKey;
 
+        // Clear and re-render only if necessary
+        messagesDiv.innerHTML = '';
+        messages.forEach((data) => {
+            const messageRowClass = data.sender === currentUser.uid ? 'sent' : 'received';
+            const time = new Date(data.timestamp).toLocaleTimeString('en-US', {
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true,
+            });
+
+            const messageElement = document.createElement('div');
+            messageElement.className = `message-row ${messageRowClass}`;
+            messageElement.innerHTML = `
+                <div class="message">
+                    ${data.message}
+                    <div class="timestamp">${time}</div>
+                </div>
+            `;
+            messagesDiv.appendChild(messageElement);
+        });
+
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }, (error) => {
+        console.error('Load messages error:', error);
+    });
+
+    // Update chat partner info
+    const chatUsers = currentChatId.split('_');
+    const partnerUid = chatUsers.find((uid) => uid !== currentUser.uid);
+    db.ref('users/' + partnerUid).once('value', (snapshot) => {
+        if (snapshot.exists()) {
+            chatPartner = { uid: partnerUid, email: snapshot.val().email };
+            document.getElementById('chatTitle').textContent = chatPartner.email.split('@')[0];
+        }
+    });
+
+    document.getElementById('chatList').style.display = 'none';
+    document.getElementById('messages').style.display = 'flex';
+    document.getElementById('inputArea').style.display = 'flex';
+    document.getElementById('backButton').style.display = 'block';
+    document.getElementById('searchContainer').style.display = 'none';
+}
         async function loadChatList() {
             if (isChatListLoading) {
                 return; // Prevent multiple calls if already loading
@@ -743,6 +774,7 @@
             document.getElementById('chatList').style.display = 'flex'; // Show chat list
             document.getElementById('messages').style.display = 'none'; // Hide messages area
             document.getElementById('inputArea').style.display = 'none'; // Hide input area
+            document.getElementById('searchContainer').style.display = 'flex'; // Show search box on chat list
             currentChatId = null; // Clear current chat context
             chatPartner = null;
 
@@ -810,15 +842,36 @@
 
 
         function updateLastMessageInChatList(chatId, message) {
-            const chatItem = document.querySelector(`.chat-item`); // Select first chat item - ideally you'd target the specific item by chatId if needed.
-            if (chatItem) {
-                const lastMessageElement = chatItem.querySelector('.chat-item-last-message');
-                if (lastMessageElement) {
-                    lastMessageElement.textContent = message;
-                }
-            }
-            loadChatList(); // Refresh the entire list to re-sort if needed. More efficient way is to update in place but for simplicity refreshing list.
+    // Skip updating chat list if user is in the current chat
+    if (document.getElementById('messages').style.display === 'flex') {
+        return; // Avoid updating chat list while in a chat to prevent flicker
+    }
+
+    const chatItems = document.querySelectorAll('.chat-item');
+    let targetChatItem = null;
+
+    chatItems.forEach((item) => {
+        const emailElement = item.querySelector('.chat-item-email');
+        if (emailElement && emailElement.textContent === chatPartner.email) {
+            targetChatItem = item;
         }
+    });
+
+    if (targetChatItem) {
+        const lastMessageElement = targetChatItem.querySelector('.chat-item-last-message');
+        if (lastMessageElement) {
+            lastMessageElement.textContent = message;
+        }
+        // Move the chat item to the top smoothly
+        const chatListDiv = document.getElementById('chatList');
+        chatListDiv.prepend(targetChatItem);
+    } else {
+        // Only reload chat list if not in a chat
+        if (!currentChatId) {
+            loadChatList();
+        }
+    }
+}
 
         function goBackToChatList() {
             loadChatList();
@@ -1050,13 +1103,13 @@
         document.getElementById('hangupButton').addEventListener('click', hangup);
         document.getElementById('backButton').addEventListener('click', goBackToChatList);
 
-        // Handle message input enter key
-        document.getElementById('messageInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
-            }
-        });
+       // Update the keypress event listener to pass the event
+document.getElementById('messageInput').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault(); // Prevent default Enter behavior (e.g., newline)
+        sendMessage(e); // Pass the event object
+    }
+});
 
         window.addEventListener('beforeunload', hangup);
 
@@ -1065,9 +1118,9 @@
             alert('Your browser does not support WebRTC, which is required for video calls.');
         }
 
-        document.addEventListener('contextmenu', function(e) {
-          e.preventDefault();
-        });
+        // document.addEventListener('contextmenu', function(e) {
+        //   e.preventDefault();
+        // });
     </script>
 </body>
 </html>
