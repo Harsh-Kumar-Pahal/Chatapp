@@ -2,166 +2,290 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat App</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>ConnectSphere</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.0/firebase-app-compat.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.0/firebase-database-compat.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.0/firebase-auth-compat.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
+        :root {
+            --bg-color: #000;
+            --bubble-sent: #007AFF;
+            --bubble-received: #2C2C2E;
+            --text-color: #FFF;
+            --secondary-text: #AEAEB2;
+            --input-bg: #1C1C1E;
+            --border-color: #2C2C2E;
+            --button-bg: #007AFF;
+            --button-hover: #0066CC;
+            --error-color: #FF453A;
+            --search-bg: #1C1C1E;
+            --header-bg: #1C1C1E;
+            --call-bg: rgba(0, 0, 0, 0.8);
+            --control-bg: rgba(60, 60, 67, 0.36);
+        }
+
+        .light-theme {
+            --bg-color: #F2F2F7;
+            --bubble-sent: #007AFF;
+            --bubble-received: #FFFFFF;
+            --text-color: #000;
+            --secondary-text: #636366;
+            --input-bg: #FFFFFF;
+            --border-color: #C6C6C8;
+            --button-bg: #007AFF;
+            --button-hover: #0066CC;
+            --error-color: #FF3B30;
+            --search-bg: #E5E5EA;
+            --header-bg: #F9F9F9;
+            --call-bg: rgba(242, 242, 247, 0.9);
+            --control-bg: rgba(255, 255, 255, 0.9);
+        }
+
+        * {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
-            background: #ffffff;
-            height: 100vh;
-            overflow: hidden;
+            -webkit-tap-highlight-color: transparent;
         }
+
+        html, body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            touch-action: manipulation;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
         .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 0;
+            width: 100%;
             height: 100%;
             display: flex;
-            margin-top: -5px;
             flex-direction: column;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+            position: relative;
         }
-        .auth-section, .chat-section {
-            background: white;
-            padding: 5px;
-            margin: 20px;
-            box-shadow: 1px 1px 2px #ccc;
+
+        .auth-section, .chat-section, .call-popup {
+            background-color: var(--bg-color);
+            border-radius: 0;
+            transition: all 0.3s ease;
         }
+
         .auth-section {
-            width: 300px;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            border-radius: 5px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            z-index: 10;
-        }
-        .auth-section input {
             width: 100%;
-            box-sizing: border-box;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 40px 24px;
         }
+
         input, button {
-            padding: 6px;
+            width: 100%;
+            padding: 14px;
             margin: 8px 0;
-            border: 1px solid #ccc;
-            border-radius: 20px;
-            font-size: 16px;
-        }
-        input {
-            background-color: #fff;
-            border: 1px solid #dadce0;
-        }
-        button {
-            background: #0084ff;
-            color: white;
             border: none;
+            border-radius: 10px;
+            font-size: 17px;
+            font-weight: 400;
+            line-height: 1.4;
+            transition: all 0.2s ease;
+        }
+
+        input {
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+        }
+
+        input::placeholder {
+            color: var(--secondary-text);
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--button-bg);
+        }
+
+        button {
+            background-color: var(--button-bg);
+            color: white;
+            font-weight: 500;
             cursor: pointer;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        .chat-section {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            background-color: var(--bg-color);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 16px;
+            background-color: var(--header-bg);
+            border-bottom: 1px solid var(--border-color);
+            height: 50px;
+        }
+
+        .header-title {
             font-weight: 600;
+            font-size: 17px;
         }
-        button:hover {
-            background: #00488c;
+
+        .header-actions {
+            display: flex;
+            gap: 16px;
         }
+
+        .header-button {
+            background: none;
+            border: none;
+            color: #0080ff;
+            font-size: 17px;
+            font-weight: 500;
+            padding: 5px;
+            width: auto;
+        }
+
         .messages {
             flex: 1;
             overflow-y: auto;
-            padding: 10px;
-            background: url('https://www.transparenttextures.com/patterns/whatsapp-bg.png');
-            background-size: cover;
-            box-shadow: 1px -1px 6px #ccc inset;
-        }
-        .message {
-            margin: 6px 0;
-            padding: 8px 12px;
-            max-width: 70%;
-            position: relative;
-            display: inline-block;
-            word-wrap: break-word;
-            border-radius: 16px;
-            font-size: 14.2px;
-            line-height: 1.4;
-            box-shadow: 0 1px 0.5px rgba(0,0,0,0.4) inset;
-        }
-        .sent {
-            background: #0077ff;
-            color: rgb(255, 255, 255);
-            margin-left: auto;
-            border-bottom-right-radius: 0px;
-            float: right;
-            clear: both;
-        }
-        .received {
-            background: #b7b7b7;
-            color: rgb(255, 255, 255);
-            border-bottom-left-radius: 0px;
-            margin-right: auto;
-            float: left;
-            clear: both;
-        }
-        .timestamp {
-            font-size: 11px;
-            color: #000000;
-            margin-left: 10px;
-            float: right;
-            position: relative;
-            bottom: -2px;
-        }
-        .error {
-            color: #d93025;
-            font-size: 14px;
-            text-align: center;
-        }
-        .delete-btn {
-            position: absolute;
-            right: -10px;
-            top: -5px;
-            width: 20px;
-            height: 20px;
-            padding: 0;
-            background: #ef1303;
-            border-radius: 50%;
-            font-size: 12px;
-            line-height: 20px;
-            cursor: pointer;
-            color: white;
-        }
-        .delete-btn:hover {
-            background: #b71c1c;
-        }
-        .chat-section {
-            background: #f8f9fa;
-            padding-top: 10px;
+            padding: 8px 16px;
+            background-color: var(--bg-color);
             display: flex;
             flex-direction: column;
-            height: 100%;
+            scroll-behavior: smooth;
         }
-        .chat-section input[type="text"] {
-            width: 95%;
-            display: inline-block;
-            margin-right: 10px;
+
+        .message-row {
+            display: flex;
+            margin: 2px 0;
+            width: 100%;
         }
-        #searchResult {
-            background: #0080ff;
+
+        .message-row.sent {
+            justify-content: flex-end;
+        }
+
+        .message-row.received {
+            justify-content: flex-start;
+        }
+
+        .message {
+            max-width: 70%;
+            padding: 8px 12px;
+            border-radius: 18px;
+            font-size: 17px;
+            line-height: 1.4;
+            word-wrap: break-word;
+            position: relative;
+            margin: 2px 0;
+
+        }
+
+        .sent .message {
+            background-color: var(--bubble-sent);
             color: white;
-            padding: 4px;
-            text-align: center;
-            margin-bottom: 10px;
+            border-bottom-right-radius: 2px;
         }
-        .input-container {
+
+        .received .message {
+            background-color: var(--bubble-received);
+            color: var(--text-color);
+            border-bottom-left-radius: 2px;
+        }
+
+        .timestamp {
+            font-size: 11px;
+            color: var(--secondary-text);
+            margin-top: 2px;
+            text-align: right;
+        }
+
+        .input-area {
+            padding: 8px 16px;
+            background-color: var(--header-bg);
+            border-top: 1px solid var(--border-color);
             display: flex;
-            padding: 10px;
-            background: #f8f9fa;
+            align-items: center;
+            gap: 8px;
         }
+
+        .message-input {
+            flex: 1;
+            border-radius: 18px;
+            padding: 8px 16px;
+            min-height: 36px;
+            max-height: 100px;
+            resize: none;
+        }
+
+        .send-button {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: var(--button-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+        }
+
         .search-container {
+            padding: 8px 16px;
+            background-color: var(--header-bg);
+            border-bottom: 1px solid var(--border-color);
             display: flex;
-            padding: 10px;
-            background: #f8f9fa;
+            align-items: center;
+            gap: 8px;
         }
+
+        .search-input {
+            flex: 1;
+            border-radius: 10px;
+        }
+
+        .search-button {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            padding: 0;
+            background-color: transparent;
+            color: var(--button-bg);
+        }
+
+        #searchResult {
+            padding: 8px 16px;
+            font-size: 15px;
+            color: var(--secondary-text);
+            text-align: center;
+            background-color: var(--header-bg);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .error {
+            color: var(--error-color);
+            font-size: 14px;
+            text-align: center;
+            margin-top: 8px;
+        }
+
         .video-call-container {
             display: none;
             position: fixed;
@@ -169,127 +293,172 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.9);
+            background-color: var(--call-bg);
             z-index: 20;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
         }
+
         .video-grid {
             display: flex;
             flex-direction: column;
             height: 100%;
             justify-content: center;
             align-items: center;
+            gap: 16px;
         }
+
         .video-container {
             width: 100%;
-            max-width: 400px;
-            margin: 10px;
+            max-width: 100%;
+            position: relative;
         }
+
         .video-container video {
             width: 100%;
             height: auto;
-            border-radius: 10px;
+            border-radius: 16px;
             background: black;
-            object-fit: cover; /* Ensure video fills container */
+            object-fit: cover;
         }
+
         .controls {
             position: absolute;
             bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
             display: flex;
-            gap: 20px;
+            gap: 16px;
+            background-color: var(--control-bg);
+            backdrop-filter: blur(10px);
+            padding: 12px;
+            border-radius: 24px;
         }
+
         .control-button {
             width: 50px;
             height: 50px;
             border-radius: 50%;
-            background: rgba(255, 255, 255, 0.2);
+            background-color: rgba(120, 120, 128, 0.36);
             display: flex;
             align-items: center;
             justify-content: center;
+            transition: all 0.2s ease;
         }
+
+        .control-button:hover {
+            background-color: rgba(120, 120, 128, 0.5);
+        }
+
         .call-popup {
+            width: 270px;
             position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: white;
+            background-color: var(--header-bg);
+            border-radius: 14px;
             padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-            z-index: 30;
             text-align: center;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
         }
+
+        .call-popup p {
+            font-size: 17px;
+            font-weight: 500;
+            color: var(--text-color);
+            margin-bottom: 20px;
+        }
+
         .call-popup button {
-            margin-top: 10px;
+            border-radius: 10px;
+        }
+
+        .theme-toggle {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--input-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: none;
+            z-index: 30;
+        }
+
+        .theme-toggle i {
+            color: var(--text-color);
+            font-size: 18px;
         }
 
         @media (max-width: 600px) {
-            .container {
-                margin: 0;
-                padding: 0;
+            .message {
+                max-width: 80%;
             }
-            .auth-section, .chat-section {
-                margin: 0;
+
+            .controls {
+                gap: 12px;
                 padding: 10px;
-                border-radius: 0;
             }
-            .auth-section {
-                width: 100%;
-                height: auto;
-                top: 0;
-                left: 0;
-                transform: none;
-                position: fixed;
+
+            .control-button {
+                width: 44px;
+                height: 44px;
             }
-            .chat-section {
-                padding-top: 0;
-            }
-            .messages {
-                height: auto;
-            }
-            .chat-section input[type="text"] {
-                width: 90%;
-            }
-            .search-container, .input-container {
-                padding: 5px;
-            }
-            .video-grid {
-                flex-direction: column;
-                height: 100vh;
-            }
-            .video-container {
-                max-width: 100%;
-                height: 50%; /* Split screen evenly on mobile */
-            }
-            .video-container video {
-                height: 100%;
-            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message {
+            animation: fadeIn 0.2s ease;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="auth-section" id="authSection">
+            <h1 style="text-align: center; margin-bottom: 24px; font-weight: 600;">Messages</h1>
             <input type="email" id="email" placeholder="Email" required>
             <input type="password" id="password" placeholder="Password" required>
             <button onclick="signup()">Sign Up</button>
-            <button onclick="login()">Login</button>
+            <button onclick="login()">Log In</button>
             <div id="authStatus" class="error"></div>
         </div>
 
         <div class="chat-section" id="chatSection" style="display: none;">
-            <div class="search-container">
-                <input type="email" id="searchInput" placeholder="Search by email">
-                <button onclick="searchUser()" style="width: 80px;">Search</button>
-                <button onclick="startVideoCall()" style="width: 80px; background: #00c853;"><i class="fas fa-video"></i> Call</button>
-                <button onclick="logout()" style="background: transparent; color: #d93025; border: 1px solid #d93025; width: 80px; margin-left: 10px;">Logout</button>
+            <div class="header">
+                <div class="header-title" id="chatTitle">Messages</div>
+                <div class="header-actions">
+                    <button style="padding-top: 10px; margin-right: 20px;" class="header-button" onclick="startVideoCall()">
+                        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M15 10L19.5528 6.72361C20.2177 6.19116 21 6.63973 21 7.44721V16.5528C21 17.3603 20.2177 17.8088 19.5528 17.2764L15 14M5 18H13C14.1046 18 15 17.1046 15 16V8C15 6.89543 14.1046 6 13 6H5C3.89543 6 3 6.89543 3 8V16C3 17.1046 3.89543 18 5 18Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                      </button>
+                      <button style="color: red;" class="header-button" onclick="logout()">
+                        Logout
+                      </button>                    <button class="theme-toggle" style="display: none;" id="themeToggle">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                </div>
             </div>
-            <div id="searchResult" style="margin: 0;"></div>
-            <div class="messages" id="messages">Welcome</div>
-            <div class="input-container">
-                <input type="text" id="messageInput" placeholder="Type a message">
-                <button onclick="sendMessage()" style="width: 37px; font-size: 20px; font-weight: bold; border-radius: 100px; background-color: rgb(0, 200, 0);">↑</button>
+
+            <div class="search-container">
+                <input type="email" id="searchInput" placeholder="Find a friend" class="search-input">
+                <button class="search-button" onclick="searchUser()"><i class="fas fa-search"></i></button>
+            </div>
+            <div id="searchResult"></div>
+
+            <div class="messages" id="messages"></div>
+
+            <div class="input-area">
+                <input type="text" id="messageInput" placeholder="iMessage" class="message-input">
+                <button class="send-button" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
             </div>
         </div>
 
@@ -303,10 +472,10 @@
                 </div>
             </div>
             <div id="controls" class="controls">
-                <button class="control-button" id="muteButton" title="Mute Audio"><i class="fa-solid fa-microphone fa-xl" style="color: rgb(0, 145, 255);"></i></button>
-                <button class="control-button" id="hangupButton" title="End Call"><i class="fa-solid fa-phone fa-xl" style="color: red; transform: rotate(135deg);"></i></button>
-                <button class="control-button" id="videoButton" title="Stop Video"><i class="fa-solid fa-video fa-xl" style="color: rgb(0, 255, 81);"></i></button>
-                <button class="control-button" title="Flip Video" onclick="backCamera()"><i class="fa-solid fa-repeat fa-xl" style="color: #ffffff;"></i></button>
+                <button class="control-button" id="muteButton" title="Mute Audio"><i class="fa-solid fa-microphone fa-lg" style="color: #ffffff;"></i></button>
+                <button class="control-button" id="hangupButton" title="End Call"><i class="fa-solid fa-phone fa-lg" style="color: #ff3b30; transform: rotate(135deg);"></i></button>
+                <button class="control-button" id="videoButton" title="Stop Video"><i class="fa-solid fa-video fa-lg" style="color: #ffffff;"></i></button>
+                <button class="control-button" title="Flip Camera" onclick="backCamera()"><i class="fa-solid fa-repeat fa-lg" style="color: #ffffff;"></i></button>
             </div>
         </div>
 
@@ -347,6 +516,34 @@
         let isVideoOff = false;
         let backCam = 0;
 
+        // Theme toggle functionality
+        const themeToggle = document.getElementById('themeToggle');
+        const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+        
+        function setTheme(isDark) {
+            if (isDark) {
+                document.documentElement.classList.remove('light-theme');
+                themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+            } else {
+                document.documentElement.classList.add('light-theme');
+                themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+            }
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        }
+        
+        // Check localStorage for saved theme or use preferred color scheme
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme) {
+            setTheme(savedTheme === 'dark');
+        } else {
+            setTheme(prefersDarkScheme.matches);
+        }
+        
+        themeToggle.addEventListener('click', () => {
+            const isDark = document.documentElement.classList.contains('light-theme');
+            setTheme(isDark);
+        });
+
         auth.onAuthStateChanged((user) => {
             if (user) {
                 currentUser = user;
@@ -362,6 +559,7 @@
                 document.getElementById('chatSection').style.display = 'none';
                 document.getElementById('messages').innerHTML = '';
                 document.getElementById('searchResult').textContent = '';
+                document.getElementById('chatTitle').textContent = 'Messages';
                 hangup();
             }
         });
@@ -402,7 +600,7 @@
                     const userData = snapshot.val();
                     const userId = Object.keys(userData)[0];
                     if (userId === currentUser.uid) {
-                        document.getElementById('searchResult').textContent = "Can't chat with yourself";
+                        document.getElementById('searchResult').textContent = "You can't chat with yourself!";
                         return;
                     }
                     chatPartner = {
@@ -410,13 +608,15 @@
                         email: userData[userId].email
                     };
                     currentChatId = [currentUser.uid, chatPartner.uid].sort().join('_');
-                    document.getElementById('searchResult').textContent = `Chatting with: ${chatPartner.email}`;
+                    document.getElementById('searchResult').textContent = `Connected with ${chatPartner.email}`;
+                    document.getElementById('chatTitle').textContent = chatPartner.email.split('@')[0];
                     loadMessages();
                 } else {
                     document.getElementById('searchResult').textContent = 'User not found';
                     chatPartner = null;
                     currentChatId = null;
                     document.getElementById('messages').innerHTML = '';
+                    document.getElementById('chatTitle').textContent = 'Messages';
                 }
             } catch (error) {
                 console.error('Search error:', error);
@@ -451,34 +651,28 @@
                 if (snapshot.exists()) {
                     snapshot.forEach((child) => {
                         const data = child.val();
-                        const messageClass = data.sender === currentUser.uid ? 'sent' : 'received';
+                        const messageRowClass = data.sender === currentUser.uid ? 'sent' : 'received';
                         const time = new Date(data.timestamp).toLocaleTimeString('en-US', {
                             hour: 'numeric',
                             minute: '2-digit',
                             hour12: true
                         });
-                        const deleteButton = data.sender === currentUser.uid ? 
-                            `<button class="delete-btn" onclick="deleteMessage('${child.key}')">×</button>` : '';
-                        messagesDiv.innerHTML += `
-                            <div class="message ${messageClass}" style="position: relative;">
+                        
+                        const messageElement = document.createElement('div');
+                        messageElement.className = `message-row ${messageRowClass}`;
+                        messageElement.innerHTML = `
+                            <div class="message">
                                 ${data.message}
-                                <span class="timestamp">${time}</span>
-                                ${deleteButton}
-                            </div>`;
+                                <div class="timestamp">${time}</div>
+                            </div>
+                        `;
+                        messagesDiv.appendChild(messageElement);
                     });
                     messagesDiv.scrollTop = messagesDiv.scrollHeight;
                 }
             }, (error) => {
                 console.error('Load messages error:', error);
             });
-        }
-
-        function deleteMessage(messageId) {
-            if (!currentChatId || !messageId || !currentUser) return;
-            db.ref(`chats/${currentChatId}/${messageId}`).remove()
-                .catch((error) => {
-                    console.error('Delete message error:', error);
-                });
         }
 
         function logout() {
@@ -497,7 +691,6 @@
             roomId = chatPartner.email.split('@')[0];
 
             try {
-                // Use more permissive constraints for mobile compatibility
                 const constraints = {
                     video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } },
                     audio: true
@@ -550,7 +743,7 @@
         async function joinVideoCall() {
             try {
                 const constraints = {
-                    video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } },
+                    video: { facingMode: "user", width: { ideal: 1280 }, height: {ideal: 720 } },
                     audio: true
                 };
                 localStream = await navigator.mediaDevices.getUserMedia(constraints);
@@ -658,8 +851,8 @@
                     isAudioMuted = !isAudioMuted;
                     audioTrack.enabled = !isAudioMuted;
                     document.getElementById('muteButton').innerHTML = isAudioMuted ? 
-                        `<i class="fa-solid fa-microphone-slash fa-xl" style="color: #ff2e2e;"></i>` : 
-                        `<i class="fa-solid fa-microphone fa-xl" style="color: rgb(0, 145, 255);"></i>`;
+                        `<i class="fa-solid fa-microphone-slash fa-lg" style="color: #ff3b30;"></i>` : 
+                        `<i class="fa-solid fa-microphone fa-lg" style="color: #ffffff;"></i>`;
                 }
             }
         }
@@ -671,8 +864,8 @@
                     isVideoOff = !isVideoOff;
                     videoTrack.enabled = !isVideoOff;
                     document.getElementById('videoButton').innerHTML = isVideoOff ? 
-                        `<i class="fa-solid fa-video-slash fa-xl" style="color: #ff1f1f;"></i>` : 
-                        `<i class="fa-solid fa-video fa-xl" style="color: rgb(0, 255, 81);"></i>`;
+                        `<i class="fa-solid fa-video-slash fa-lg" style="color: #ff3b30;"></i>` : 
+                        `<i class="fa-solid fa-video fa-lg" style="color: #ffffff;"></i>`;
                 }
             }
         }
@@ -706,12 +899,24 @@
         document.getElementById('videoButton').addEventListener('click', toggleVideo);
         document.getElementById('hangupButton').addEventListener('click', hangup);
 
+        // Handle message input enter key
+        document.getElementById('messageInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
         window.addEventListener('beforeunload', hangup);
 
         // Check WebRTC support
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !RTCPeerConnection) {
             alert('Your browser does not support WebRTC, which is required for video calls.');
         }
+
+        document.addEventListener('contextmenu', function(e) {
+  e.preventDefault();
+});
     </script>
 </body>
 </html>
