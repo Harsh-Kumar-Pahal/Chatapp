@@ -486,14 +486,13 @@
                 </button>
                 <div class="header-title" id="chatTitle">Messages</div>
                 <div class="header-actions">
-                    <button style="padding-top: 10px; margin-right: 20px;" class="header-button" onclick="startCall('video')">
-                        <i class="fa-solid fa-video" style="color: #005eff;"></i>
-                      </button>
-                      <button style="padding-top: 10px; margin-right: 20px;" class="header-button" onclick="startCall('audio')">
-                        <i class="fa-solid fa-phone" style="color: #005eff;"></i>
+                    <button style="padding-top: 10px; margin-right: 20px;" class="header-button" onclick="startVideoCall()">
+                        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M15 10L19.5528 6.72361C20.2177 6.19116 21 6.63973 21 7.44721V16.5528C21 17.3603 20.2177 17.8088 19.5528 17.2764L15 14M5 18H13C14.1046 18 15 17.1046 15 16V8C15 6.89543 14.1046 6 13 6H5C3.89543 6 3 6.89543 3 8V16C3 17.1046 3.89543 18 5 18Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
                       </button>
                       <button style="color: red;" class="header-button" onclick="logout()">
-                        <i class="fa-solid fa-right-from-bracket" style="color: #ff0000;"></i>
+                        Logout
                       </button>
                 </div>
             </div>
@@ -535,8 +534,7 @@
 
         <div id="callPopup" class="call-popup" style="display: none;">
             <p id="callMessage"></p>
-            <button onclick="joinCall('video')">Join Video Call</button>
-            <button onclick="joinCall('audio')">Join Audio Call</button>
+            <button onclick="joinVideoCall()">Join Call</button>
         </div>
     </div>
 
@@ -572,7 +570,6 @@
         let isAudioMuted = false;
         let isVideoOff = false;
         let backCam = 0;
-        let callType = 'video'; // Default call type
 
 
         auth.onAuthStateChanged((user) => {
@@ -674,7 +671,7 @@
     if (event) {
         event.preventDefault();
     }
-
+    
     const message = document.getElementById('messageInput').value.trim();
     if (!message || !chatPartner || !currentChatId || !currentUser) return;
 
@@ -888,25 +885,21 @@ function loadMessages(selectedChatId = currentChatId) {
                 });
         }
 
-        async function startCall(callTypeParam) {
+        async function startVideoCall() {
             if (!chatPartner || !currentUser) {
                 alert("Please select a chat partner first!");
                 return;
             }
 
             roomId = chatPartner.email.split('@')[0];
-            callType = callTypeParam; // Set call type globally
 
             try {
                 const constraints = {
-                    video: callType === 'video' ? { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } } : false,
+                    video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } },
                     audio: true
                 };
                 localStream = await navigator.mediaDevices.getUserMedia(constraints);
-                document.getElementById('localVideo').srcObject = (callType === 'video') ? localStream : null; // Only attach video stream for video calls
-                document.getElementById('remoteVideo').style.display = (callType === 'video') ? 'block' : 'none'; // Show/hide remote video
-                document.getElementById('localVideoContainer').style.display = (callType === 'video') ? 'block' : 'none'; // Show/hide local video container
-
+                document.getElementById('localVideo').srcObject = localStream;
 
                 peerConnection = new RTCPeerConnection(configuration);
                 setupPeerConnection();
@@ -919,7 +912,6 @@ function loadMessages(selectedChatId = currentChatId) {
                 await db.ref(`calls/${roomId}`).set({
                     caller: currentUser.email,
                     offer: { type: offer.type, sdp: offer.sdp },
-                    callType: callType, // Save call type to Firebase
                     timestamp: firebase.database.ServerValue.TIMESTAMP
                 });
 
@@ -930,12 +922,10 @@ function loadMessages(selectedChatId = currentChatId) {
                     }
                 });
 
-                showVideoCallUI(); // Reuse video call UI for both audio and video
-                updateControlIconsForCallType(callType); // Update control button visibility based on call type
-
+                showVideoCallUI();
             } catch (error) {
-                console.error('Error starting call:', error);
-                alert(`Failed to start call: ${error.message}`);
+                console.error('Error starting video call:', error);
+                alert(`Failed to start video call: ${error.message}`);
             }
         }
 
@@ -949,23 +939,18 @@ function loadMessages(selectedChatId = currentChatId) {
                     document.getElementById('callMessage').textContent = `${callData.caller} is calling you!`;
                     document.getElementById('callPopup').style.display = 'block';
                     roomId = callId;
-                    callType = callData.callType || 'video'; // Get call type from incoming call data
                 }
             });
         }
 
-        async function joinCall(joinCallType) {
+        async function joinVideoCall() {
             try {
-                callType = joinCallType; // Set call type based on user's choice
                 const constraints = {
-                    video: callType === 'video' ? { facingMode: "user", width: { ideal: 1280 }, height: {ideal: 720 } } : false,
+                    video: { facingMode: "user", width: { ideal: 1280 }, height: {ideal: 720 } },
                     audio: true
                 };
                 localStream = await navigator.mediaDevices.getUserMedia(constraints);
-                document.getElementById('localVideo').srcObject = (callType === 'video') ? localStream : null;
-                document.getElementById('remoteVideo').style.display = (callType === 'video') ? 'block' : 'none'; // Show/hide remote video
-                document.getElementById('localVideoContainer').style.display = (callType === 'video') ? 'block' : 'none'; // Show/hide local video container
-
+                document.getElementById('localVideo').srcObject = localStream;
 
                 const snapshot = await db.ref(`calls/${roomId}`).get();
                 const callData = snapshot.val();
@@ -991,11 +976,9 @@ function loadMessages(selectedChatId = currentChatId) {
 
                 document.getElementById('callPopup').style.display = 'none';
                 showVideoCallUI();
-                updateControlIconsForCallType(callType); // Update control button visibility based on call type
-
             } catch (error) {
-                console.error('Error joining call:', error);
-                alert(`Failed to join call: ${error.message}`);
+                console.error('Error joining video call:', error);
+                alert(`Failed to join video call: ${error.message}`);
             }
         }
 
@@ -1082,19 +1065,13 @@ function loadMessages(selectedChatId = currentChatId) {
                 const videoTrack = localStream.getVideoTracks()[0];
                 if (videoTrack) {
                     isVideoOff = !isVideoOff;
-                    isVideoOff = !isVideoOff; // Toggle video off state
-                    videoTrack.enabled = !isVideoOff; // Enable/disable video track
-
-                    if (callType === 'video') { // Only update UI if it's a video call
-                        document.getElementById('videoButton').innerHTML = isVideoOff ?
-                            `<i class="fa-solid fa-video-slash fa-lg" style="color: #ff3b30;"></i>` :
-                            `<i class="fa-solid fa-video fa-lg" style="color: #ffffff;"></i>`;
-                        document.getElementById('localVideoContainer').style.display = isVideoOff ? 'none' : 'block'; // Hide local video container if video is off
-                    }
+                    videoTrack.enabled = !isVideoOff;
+                    document.getElementById('videoButton').innerHTML = isVideoOff ?
+                        `<i class="fa-solid fa-video-slash fa-lg" style="color: #ff3b30;"></i>` :
+                        `<i class="fa-solid fa-video fa-lg" style="color: #ffffff;"></i>`;
                 }
             }
         }
-
 
         function hangup() {
             if (localStream) {
@@ -1120,17 +1097,6 @@ function loadMessages(selectedChatId = currentChatId) {
         function showVideoCallUI() {
             document.getElementById('videoCallContainer').style.display = 'block';
         }
-
-        function updateControlIconsForCallType(currentCallType) {
-            if (currentCallType === 'audio') {
-                document.getElementById('videoButton').style.display = 'none'; // Hide video toggle button for audio calls
-                document.querySelector('.control-button[onclick="backCamera()"]').style.display = 'none'; // Hide camera flip button for audio calls
-            } else {
-                document.getElementById('videoButton').style.display = 'block'; // Show video toggle button for video calls
-                document.querySelector('.control-button[onclick="backCamera()"]').style.display = 'block'; // Show camera flip button for video calls
-            }
-        }
-
 
         document.getElementById('muteButton').addEventListener('click', toggleAudio);
         document.getElementById('videoButton').addEventListener('click', toggleVideo);
