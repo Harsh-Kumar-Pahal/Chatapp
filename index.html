@@ -27,23 +27,6 @@
             --control-bg: rgba(60, 60, 67, 0.36);
         }
 
-        .light-theme {
-            --bg-color: #F2F2F7;
-            --bubble-sent: #007AFF;
-            --bubble-received: #FFFFFF;
-            --text-color: #000;
-            --secondary-text: #636366;
-            --input-bg: #FFFFFF;
-            --border-color: #C6C6C8;
-            --button-bg: #007AFF;
-            --button-hover: #0066CC;
-            --error-color: #FF3B30;
-            --search-bg: #E5E5EA;
-            --header-bg: #F9F9F9;
-            --call-bg: rgba(242, 242, 247, 0.9);
-            --control-bg: rgba(255, 255, 255, 0.9);
-        }
-
         * {
             box-sizing: border-box;
             margin: 0;
@@ -90,10 +73,10 @@
 
         input, button {
             width: 100%;
-            padding: 14px;
+            padding: 8px;
             margin: 8px 0;
             border: none;
-            border-radius: 10px;
+            border-radius: 50px;
             font-size: 17px;
             font-weight: 400;
             line-height: 1.4;
@@ -173,6 +156,47 @@
             scroll-behavior: smooth;
         }
 
+        .chat-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px 0px;
+            background-color: var(--bg-color);
+            display: flex;
+            flex-direction: column;
+            scroll-behavior: smooth;
+        }
+
+        .chat-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+        }
+
+        .chat-item:hover {
+            background-color: var(--input-bg);
+        }
+
+        .chat-item-info {
+            margin-left: 12px;
+            flex: 1;
+        }
+
+        .chat-item-email {
+            font-weight: 500;
+        }
+
+        .chat-item-last-message {
+            font-size: 14px;
+            color: var(--secondary-text);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 100%; /* Adjust as needed */
+        }
+
+
         .message-row {
             display: flex;
             margin: 2px 0;
@@ -225,6 +249,11 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            position: sticky; /* or fixed */
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 10; /* Ensure it's above other content */
         }
 
         .message-input {
@@ -234,6 +263,7 @@
             min-height: 36px;
             max-height: 100px;
             resize: none;
+            overflow-y: auto; /* Add vertical scroll for long text */
         }
 
         .send-button {
@@ -303,23 +333,52 @@
             flex-direction: column;
             height: 100%;
             justify-content: center;
-            align-items: center;
+            align-items: center; /* Center items horizontally */
             gap: 16px;
         }
 
         .video-container {
-            width: 100%;
-            max-width: 100%;
+            width: 100%; /* Take full width of video-grid */
+            height: 100%; /* Take full height of video-grid */
             position: relative;
         }
 
-        .video-container video {
+        .video-container#remoteVideoContainer {
+            /* Remote video container takes full screen */
+            position: absolute; /* To cover the entire video-grid */
+            top: 0;
+            left: 0;
             width: 100%;
-            height: auto;
-            border-radius: 16px;
+            height: 100%;
+            z-index: 1; /* Ensure remote video is behind local video */
+        }
+
+        .video-container#remoteVideoContainer video {
+            width: 100%;
+            height: 100%;
+            border-radius: 0; /* Removed border radius for full screen remote video */
             background: black;
             object-fit: cover;
         }
+
+        #localVideoContainer { /* Container for local video */
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            width: 120px;  /* Smaller size */
+            height: 160px; /* Adjusted height */
+            border-radius: 16px;
+            overflow: hidden; /* Clip to rounded corners */
+            z-index: 2; /* Ensure local video is on top of remote video */
+        }
+
+        #localVideoContainer video {
+            position: relative; /* To work within container */
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
 
         .controls {
             position: absolute;
@@ -332,6 +391,7 @@
             backdrop-filter: blur(10px);
             padding: 12px;
             border-radius: 24px;
+            z-index: 3; /* Ensure controls are on top of videos */
         }
 
         .control-button {
@@ -373,26 +433,6 @@
             border-radius: 10px;
         }
 
-        .theme-toggle {
-            position: absolute;
-            top: 16px;
-            right: 16px;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background-color: var(--input-bg);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            border: none;
-            z-index: 30;
-        }
-
-        .theme-toggle i {
-            color: var(--text-color);
-            font-size: 18px;
-        }
 
         @media (max-width: 600px) {
             .message {
@@ -407,6 +447,13 @@
             .control-button {
                 width: 44px;
                 height: 44px;
+            }
+
+            #localVideoContainer {
+                width: 90px;
+                height: 120px;
+                bottom: 10px;
+                right: 10px;
             }
         }
 
@@ -433,6 +480,9 @@
 
         <div class="chat-section" id="chatSection" style="display: none;">
             <div class="header">
+                <button class="header-button" style="margin-right: 10px; display: none;" id="backButton" onclick="goBackToChatList()">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
                 <div class="header-title" id="chatTitle">Messages</div>
                 <div class="header-actions">
                     <button style="padding-top: 10px; margin-right: 20px;" class="header-button" onclick="startVideoCall()">
@@ -442,9 +492,7 @@
                       </button>
                       <button style="color: red;" class="header-button" onclick="logout()">
                         Logout
-                      </button>                    <button class="theme-toggle" style="display: none;" id="themeToggle">
-                        <i class="fas fa-moon"></i>
-                    </button>
+                      </button>
                 </div>
             </div>
 
@@ -454,9 +502,13 @@
             </div>
             <div id="searchResult"></div>
 
-            <div class="messages" id="messages"></div>
+            <div class="chat-list" id="chatList">
+                <!-- Chat list items will be loaded here -->
+            </div>
 
-            <div class="input-area">
+            <div class="messages" id="messages" style="display: none;"></div>
+
+            <div class="input-area" id="inputArea" style="display: none;">
                 <input type="text" id="messageInput" placeholder="iMessage" class="message-input">
                 <button class="send-button" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
             </div>
@@ -464,11 +516,11 @@
 
         <div id="videoCallContainer" class="video-call-container">
             <div class="video-grid">
-                <div class="video-container">
-                    <video id="localVideo" autoplay playsinline muted></video>
-                </div>
-                <div class="video-container">
+                <div class="video-container" id="remoteVideoContainer">
                     <video id="remoteVideo" autoplay playsinline></video>
+                </div>
+                <div class="video-container" id="localVideoContainer">
+                    <video id="localVideo" autoplay playsinline muted></video>
                 </div>
             </div>
             <div id="controls" class="controls">
@@ -502,6 +554,8 @@
         let currentUser = null;
         let chatPartner = null;
         let currentChatId = null;
+        let chatListCache = {}; // Cache for chat list data
+        let isChatListLoading = false; // Flag to prevent multiple loadChatList calls
 
         const configuration = {
             iceServers: [
@@ -516,33 +570,6 @@
         let isVideoOff = false;
         let backCam = 0;
 
-        // Theme toggle functionality
-        const themeToggle = document.getElementById('themeToggle');
-        const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
-        
-        function setTheme(isDark) {
-            if (isDark) {
-                document.documentElement.classList.remove('light-theme');
-                themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
-            } else {
-                document.documentElement.classList.add('light-theme');
-                themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
-            }
-            localStorage.setItem('theme', isDark ? 'dark' : 'light');
-        }
-        
-        // Check localStorage for saved theme or use preferred color scheme
-        const savedTheme = localStorage.getItem('theme');
-        if (savedTheme) {
-            setTheme(savedTheme === 'dark');
-        } else {
-            setTheme(prefersDarkScheme.matches);
-        }
-        
-        themeToggle.addEventListener('click', () => {
-            const isDark = document.documentElement.classList.contains('light-theme');
-            setTheme(isDark);
-        });
 
         auth.onAuthStateChanged((user) => {
             if (user) {
@@ -551,6 +578,7 @@
                 document.getElementById('chatSection').style.display = 'flex';
                 saveUserToDatabase(user);
                 listenForIncomingCalls();
+                loadChatList(); // Load chat list on login
             } else {
                 currentUser = null;
                 chatPartner = null;
@@ -558,8 +586,12 @@
                 document.getElementById('authSection').style.display = 'block';
                 document.getElementById('chatSection').style.display = 'none';
                 document.getElementById('messages').innerHTML = '';
+                document.getElementById('chatList').innerHTML = ''; // Clear chat list
                 document.getElementById('searchResult').textContent = '';
                 document.getElementById('chatTitle').textContent = 'Messages';
+                document.getElementById('messages').style.display = 'none'; // Hide messages area
+                document.getElementById('inputArea').style.display = 'none'; // Hide input area
+                document.getElementById('backButton').style.display = 'none'; // Hide back button
                 hangup();
             }
         });
@@ -610,6 +642,10 @@
                     currentChatId = [currentUser.uid, chatPartner.uid].sort().join('_');
                     document.getElementById('searchResult').textContent = `Connected with ${chatPartner.email}`;
                     document.getElementById('chatTitle').textContent = chatPartner.email.split('@')[0];
+                    document.getElementById('chatList').style.display = 'none'; // Hide chat list
+                    document.getElementById('messages').style.display = 'flex'; // Show messages area
+                    document.getElementById('inputArea').style.display = 'flex'; // Show input area
+                    document.getElementById('backButton').style.display = 'block'; // Show back button
                     loadMessages();
                 } else {
                     document.getElementById('searchResult').textContent = 'User not found';
@@ -617,6 +653,9 @@
                     currentChatId = null;
                     document.getElementById('messages').innerHTML = '';
                     document.getElementById('chatTitle').textContent = 'Messages';
+                    document.getElementById('messages').style.display = 'none'; // Hide messages area
+                    document.getElementById('inputArea').style.display = 'none'; // Hide input area
+                    document.getElementById('backButton').style.display = 'none'; // Hide back button
                 }
             } catch (error) {
                 console.error('Search error:', error);
@@ -635,14 +674,16 @@
             })
             .then(() => {
                 document.getElementById('messageInput').value = '';
+                updateLastMessageInChatList(currentChatId, message); // Update last message in chat list
             })
             .catch((error) => {
                 console.error('Send message error:', error);
             });
         }
 
-        function loadMessages() {
-            if (!currentChatId) return;
+        function loadMessages(selectedChatId = currentChatId) {
+            if (!selectedChatId) return;
+            currentChatId = selectedChatId;
 
             const messagesDiv = document.getElementById('messages');
             db.ref(`chats/${currentChatId}`).off();
@@ -657,7 +698,7 @@
                             minute: '2-digit',
                             hour12: true
                         });
-                        
+
                         const messageElement = document.createElement('div');
                         messageElement.className = `message-row ${messageRowClass}`;
                         messageElement.innerHTML = `
@@ -673,7 +714,116 @@
             }, (error) => {
                 console.error('Load messages error:', error);
             });
+
+            // Extract chat partner email for header title
+            const chatUsers = currentChatId.split('_');
+            const partnerUid = chatUsers.find(uid => uid !== currentUser.uid);
+            db.ref('users/' + partnerUid).once('value', snapshot => {
+                if (snapshot.exists()) {
+                    chatPartner = { uid: partnerUid, email: snapshot.val().email };
+                    document.getElementById('chatTitle').textContent = chatPartner.email.split('@')[0];
+                }
+            });
+
+            document.getElementById('chatList').style.display = 'none'; // Hide chat list
+            document.getElementById('messages').style.display = 'flex'; // Show messages area
+            document.getElementById('inputArea').style.display = 'flex'; // Show input area
+            document.getElementById('backButton').style.display = 'block'; // Show back button
         }
+
+        async function loadChatList() {
+            if (isChatListLoading) {
+                return; // Prevent multiple calls if already loading
+            }
+            isChatListLoading = true;
+            const chatListDiv = document.getElementById('chatList');
+            chatListDiv.innerHTML = ''; // Clear existing list **ENSURE THIS IS FIRST**
+            document.getElementById('chatTitle').textContent = 'Messages'; // Reset header title
+            document.getElementById('backButton').style.display = 'none'; // Hide back button
+            document.getElementById('chatList').style.display = 'flex'; // Show chat list
+            document.getElementById('messages').style.display = 'none'; // Hide messages area
+            document.getElementById('inputArea').style.display = 'none'; // Hide input area
+            currentChatId = null; // Clear current chat context
+            chatPartner = null;
+
+            const userChatsRef = db.ref('chats');
+            const chats = [];
+
+            try {
+                const snapshot = await userChatsRef.orderByChild('timestamp').limitToLast(100).once('value'); // Adjust limit as needed
+                if (snapshot.exists()) {
+                    snapshot.forEach(chatSnapshot => {
+                        const chatId = chatSnapshot.key;
+                        if (chatId.includes(currentUser.uid)) {
+                            const lastMessageKey = Object.keys(chatSnapshot.val()).filter(key => key !== 'answer' && key !== 'candidates' && key !== 'caller' && key !== 'offer' && key !== 'timestamp').pop(); // Find last message key excluding call data
+                            if (lastMessageKey) {
+                                const lastMessageData = chatSnapshot.val()[lastMessageKey];
+                                const chatUsers = chatId.split('_');
+                                const partnerUid = chatUsers.find(uid => uid !== currentUser.uid);
+
+                                chats.push({
+                                    chatId: chatId,
+                                    partnerUid: partnerUid,
+                                    lastMessage: lastMessageData.message,
+                                    timestamp: lastMessageData.timestamp
+                                });
+                            }
+                        }
+                    });
+
+                    // Sort chats by timestamp in descending order (most recent first)
+                    chats.sort((a, b) => b.timestamp - a.timestamp);
+
+                    if (chats.length === 0) {
+                        chatListDiv.innerHTML = '<div style="padding: 16px; text-align: center; color: var(--secondary-text);">No chats yet. Search for a user to start chatting.</div>';
+                    } else {
+                        for (const chat of chats) { // Changed forEach to for...of to handle async operations in sequence if needed in future
+                            const userSnapshot = await db.ref('users/' + chat.partnerUid).once('value');
+                            if (userSnapshot.exists()) {
+                                const partnerEmail = userSnapshot.val().email;
+                                const chatItem = document.createElement('div');
+                                chatItem.className = 'chat-item';
+                                chatItem.innerHTML = `
+                                    <div class="chat-item-info">
+                                        <div class="chat-item-email">${partnerEmail}</div>
+                                        <div class="chat-item-last-message">${chat.lastMessage || ''}</div>
+                                    </div>
+                                `;
+                                chatItem.addEventListener('click', () => {
+                                    chatPartner = { uid: chat.partnerUid, email: partnerEmail }; // Set chat partner
+                                    loadMessages(chat.chatId);
+                                });
+                                chatListDiv.appendChild(chatItem);
+                            }
+                        }
+                    }
+                } else {
+                    chatListDiv.innerHTML = '<div style="padding: 16px; text-align: center; color: var(--secondary-text);">No chats yet. Search for a user to start chatting.</div>';
+                }
+            } catch (error) {
+                console.error("Error loading chat list:", error);
+                chatListDiv.innerHTML = '<div style="padding: 16px; text-align: center; color: var(--error-color);">Failed to load chats. Please try again later.</div>';
+            } finally {
+                isChatListLoading = false; // Reset loading flag
+            }
+        }
+
+
+        function updateLastMessageInChatList(chatId, message) {
+            const chatItem = document.querySelector(`.chat-item`); // Select first chat item - ideally you'd target the specific item by chatId if needed.
+            if (chatItem) {
+                const lastMessageElement = chatItem.querySelector('.chat-item-last-message');
+                if (lastMessageElement) {
+                    lastMessageElement.textContent = message;
+                }
+            }
+            loadChatList(); // Refresh the entire list to re-sort if needed. More efficient way is to update in place but for simplicity refreshing list.
+        }
+
+        function goBackToChatList() {
+            loadChatList();
+        }
+
 
         function logout() {
             auth.signOut()
@@ -850,8 +1000,8 @@
                 if (audioTrack) {
                     isAudioMuted = !isAudioMuted;
                     audioTrack.enabled = !isAudioMuted;
-                    document.getElementById('muteButton').innerHTML = isAudioMuted ? 
-                        `<i class="fa-solid fa-microphone-slash fa-lg" style="color: #ff3b30;"></i>` : 
+                    document.getElementById('muteButton').innerHTML = isAudioMuted ?
+                        `<i class="fa-solid fa-microphone-slash fa-lg" style="color: #ff3b30;"></i>` :
                         `<i class="fa-solid fa-microphone fa-lg" style="color: #ffffff;"></i>`;
                 }
             }
@@ -863,8 +1013,8 @@
                 if (videoTrack) {
                     isVideoOff = !isVideoOff;
                     videoTrack.enabled = !isVideoOff;
-                    document.getElementById('videoButton').innerHTML = isVideoOff ? 
-                        `<i class="fa-solid fa-video-slash fa-lg" style="color: #ff3b30;"></i>` : 
+                    document.getElementById('videoButton').innerHTML = isVideoOff ?
+                        `<i class="fa-solid fa-video-slash fa-lg" style="color: #ff3b30;"></i>` :
                         `<i class="fa-solid fa-video fa-lg" style="color: #ffffff;"></i>`;
                 }
             }
@@ -898,6 +1048,7 @@
         document.getElementById('muteButton').addEventListener('click', toggleAudio);
         document.getElementById('videoButton').addEventListener('click', toggleVideo);
         document.getElementById('hangupButton').addEventListener('click', hangup);
+        document.getElementById('backButton').addEventListener('click', goBackToChatList);
 
         // Handle message input enter key
         document.getElementById('messageInput').addEventListener('keypress', function(e) {
@@ -915,8 +1066,8 @@
         }
 
         document.addEventListener('contextmenu', function(e) {
-  e.preventDefault();
-});
+          e.preventDefault();
+        });
     </script>
 </body>
 </html>
