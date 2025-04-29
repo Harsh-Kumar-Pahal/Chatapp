@@ -25,6 +25,8 @@
             --header-bg: #1C1C1E;
             --call-bg: rgba(0, 0, 0, 0.8);
             --control-bg: rgba(60, 60, 67, 0.36);
+            --online-color: #34C759; /* Green */
+            --offline-color: #FF3B30; /* Red */
         }
 
         * {
@@ -36,8 +38,8 @@
 
         html, body {
             font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
-            height: 100vh;
-            width: 100vw;
+            height: 100%; /* Use 100% instead of 100vh for better mobile handling */
+            width: 100%;
             overflow: hidden;
             background-color: var(--bg-color);
             color: var(--text-color);
@@ -73,10 +75,10 @@
 
         input, button {
             width: 100%;
-            padding: 8px;
+            padding: 12px 16px; /* Increased padding for easier tap */
             margin: 8px 0;
             border: none;
-            border-radius: 50px;
+            border-radius: 10px; /* Slightly less rounded */
             font-size: 17px;
             font-weight: 400;
             line-height: 1.4;
@@ -96,6 +98,7 @@
         input:focus {
             outline: none;
             border-color: var(--button-bg);
+            box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.3); /* Focus ring */
         }
 
         button {
@@ -107,6 +110,7 @@
 
         button:active {
             transform: scale(0.98);
+            background-color: var(--button-hover);
         }
 
         .chat-section {
@@ -120,30 +124,55 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px 16px;
+            padding: 0 16px; /* Adjusted padding */
             background-color: var(--header-bg);
-            border-bottom: 1px solid var(--border-color);
-            height: 50px;
+            border-bottom: 0.5px solid var(--border-color); /* Thinner border */
+            height: 56px; /* Standard iOS header height */
+            flex-shrink: 0;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
         }
 
         .header-title {
             font-weight: 600;
             font-size: 17px;
+            text-align: center;
+            flex-grow: 1; /* Allow title to center properly */
+            margin-left: 10px; /* Space after back button */
         }
 
         .header-actions {
             display: flex;
-            gap: 16px;
+            align-items: center; /* Align buttons vertically */
+            gap: 0px; /* Reduced gap */
         }
 
         .header-button {
             background: none;
             border: none;
-            color: #0080ff;
+            color: var(--button-bg); /* Use theme color */
             font-size: 17px;
-            font-weight: 500;
-            padding: 5px;
+            font-weight: 400; /* Regular weight for action text */
+            padding: 8px; /* Easier tap target */
+            margin: 0; /* Remove default margins */
             width: auto;
+            cursor: pointer;
+            display: flex; /* Align icon and text if needed */
+            align-items: center;
+            justify-content: center;
+            min-width: 44px; /* Ensure minimum tap area */
+            min-height: 44px;
+        }
+         .header-button i, .header-button svg { /* Style icons within buttons */
+             font-size: 22px; /* Slightly larger icons */
+         }
+
+        .header-button.logout-button { /* Specific style for logout */
+            color: var(--error-color);
+            font-weight: 400;
         }
 
         .messages {
@@ -159,7 +188,6 @@
         .chat-list {
             flex: 1;
             overflow-y: auto;
-            padding: 8px 0px;
             background-color: var(--bg-color);
             display: flex;
             flex-direction: column;
@@ -170,25 +198,66 @@
             display: flex;
             align-items: center;
             padding: 12px 16px;
-            border-bottom: 1px solid var(--border-color);
+            border-bottom: 0.5px solid var(--border-color);
             cursor: pointer;
+            transition: background-color 0.15s ease;
         }
 
         .chat-item:hover {
             background-color: var(--input-bg);
         }
 
+        .chat-item-avatar { /* Placeholder for future avatar */
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--bubble-received); /* Placeholder color */
+            margin-right: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 500;
+            font-size: 16px;
+        }
+
         .chat-item-info {
-            margin-left: 12px;
             flex: 1;
+            overflow: hidden; /* Prevent long text overflow */
+        }
+
+        .chat-item-header {
+             display: flex;
+             align-items: center;
+             gap: 6px; /* Space between email and status dot */
+             margin-bottom: 2px;
         }
 
         .chat-item-email {
             font-weight: 500;
+            font-size: 17px;
+            color: var(--text-color);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0; /* Prevent dot from shrinking */
+        }
+
+        .status-dot.online {
+            background-color: var(--online-color);
+        }
+
+        .status-dot.offline {
+            background-color: var(--offline-color);
         }
 
         .chat-item-last-message {
-            font-size: 14px;
+            font-size: 15px; /* Slightly smaller */
             color: var(--secondary-text);
             overflow: hidden;
             text-overflow: ellipsis;
@@ -200,6 +269,7 @@
             display: flex;
             margin: 2px 0;
             width: 100%;
+            padding: 0 4px; /* Small horizontal padding */
         }
 
         .message-row.sent {
@@ -211,7 +281,7 @@
         }
 
         .message {
-            max-width: 70%;
+            max-width: 75%; /* Slightly wider max width */
             padding: 8px 12px;
             border-radius: 18px;
             font-size: 17px;
@@ -219,74 +289,97 @@
             word-wrap: break-word;
             position: relative;
             margin: 2px 0;
+            box-shadow: 0 1px 0.5px rgba(0, 0, 0, 0.13); /* Subtle shadow */
         }
 
         .sent .message {
             background-color: var(--bubble-sent);
             color: white;
-            border-bottom-right-radius: 2px;
+            border-bottom-right-radius: 4px; /* iMessage style adjustment */
         }
 
         .received .message {
             background-color: var(--bubble-received);
             color: var(--text-color);
-            border-bottom-left-radius: 2px;
+            border-bottom-left-radius: 4px; /* iMessage style adjustment */
         }
 
         .timestamp {
             font-size: 11px;
             color: var(--secondary-text);
-            margin-top: 2px;
+            margin-top: 4px; /* More space */
             text-align: right;
+            display: block; /* Ensure it takes its own line if needed */
         }
 
         .input-area {
-            padding: 8px 16px;
+            padding: 8px 12px 8px 16px; /* Adjusted padding */
             background-color: var(--header-bg);
-            border-top: 1px solid var(--border-color);
+            border-top: 0.5px solid var(--border-color);
             display: flex;
-            align-items: center;
+            align-items: flex-end; /* Align items to bottom */
             gap: 8px;
             position: sticky;
             bottom: 0;
             left: 0;
             right: 0;
             z-index: 10;
+            padding-bottom: calc(8px + env(safe-area-inset-bottom)); /* Adjust for safe area */
         }
 
-        .message-input {
+        #messageInput { /* Use ID for specific styling */
             flex: 1;
             border-radius: 18px;
             padding: 8px 16px;
-            min-height: 36px;
+            min-height: 38px; /* iOS like height */
             max-height: 100px;
             resize: none;
             overflow-y: auto;
+            border: none; /* Remove border */
+            margin: 0; /* Remove margin */
+            font-size: 17px;
         }
 
         .send-button {
-            width: 36px;
-            height: 36px;
+            width: 38px; /* Match input height */
+            height: 38px;
             border-radius: 50%;
             background-color: var(--button-bg);
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 0;
+            margin: 0 0 0 4px; /* Small left margin */
+            cursor: pointer;
+            transition: background-color 0.2s ease;
         }
+        .send-button i {
+            color: white;
+            font-size: 18px;
+            transform: translateX(1px); /* Fine-tune icon position */
+        }
+        .send-button:active {
+            background-color: var(--button-hover);
+            transform: none; /* Disable scale transform for this button */
+        }
+
 
         .search-container {
             padding: 8px 16px;
             background-color: var(--header-bg);
-            border-bottom: 1px solid var(--border-color);
+            border-bottom: 0.5px solid var(--border-color);
             display: flex;
             align-items: center;
             gap: 8px;
+            flex-shrink: 0;
         }
 
         .search-input {
             flex: 1;
             border-radius: 10px;
+            margin: 0; /* Remove margin */
+            padding: 8px 12px; /* Adjust padding */
+            height: 36px;
         }
 
         .search-button {
@@ -296,22 +389,31 @@
             padding: 0;
             background-color: transparent;
             color: var(--button-bg);
+            margin: 0; /* Remove margin */
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
+         .search-button i {
+             font-size: 18px;
+         }
 
         #searchResult {
             display: none;
             font-size: 15px;
             color: var(--secondary-text);
             text-align: center;
-            background-color: var(--header-bg);
-            border-bottom: 1px solid var(--border-color);
+            padding: 12px 16px; /* Add padding */
+            background-color: var(--header-bg); /* Match background */
+            border-bottom: 0.5px solid var(--border-color); /* Add border */
         }
 
         .error {
             color: var(--error-color);
             font-size: 14px;
             text-align: center;
-            margin-top: 8px;
+            margin-top: 12px; /* More space */
+            padding: 0 16px; /* Add padding */
         }
 
         .video-call-container {
@@ -327,67 +429,62 @@
         }
 
         .video-grid {
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            justify-content: center;
-            align-items: center;
-            gap: 16px;
-        }
-
-        .video-container {
+            display: flex; /* Use flex for positioning */
             width: 100%;
             height: 100%;
-            position: relative;
+            position: relative; /* Needed for absolute positioning of local video */
         }
 
-        .video-container#remoteVideoContainer {
+        /* Remote video fills the background */
+        #remoteVideoContainer {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: 1;
+            z-index: 1; /* Behind local video and controls */
         }
-
-        .video-container#remoteVideoContainer video {
+         #remoteVideo {
             width: 100%;
             height: 100%;
-            border-radius: 0;
-            background: black;
-            object-fit: cover;
-        }
+            object-fit: cover; /* Cover the area */
+            background-color: #000; /* Black background if no video */
+         }
 
+        /* Local video Picture-in-Picture style */
         #localVideoContainer {
             position: absolute;
-            bottom: 20px;
-            right: 20px;
-            width: 120px;
-            height: 160px;
-            border-radius: 16px;
+            bottom: calc(90px + env(safe-area-inset-bottom)); /* Position above controls */
+            right: 16px; /* Padding from edge */
+            width: 100px; /* Smaller PiP size */
+            height: 150px; /* Adjust aspect ratio */
+            border-radius: 12px; /* Rounded corners */
             overflow: hidden;
-            z-index: 2;
+            border: 1px solid rgba(255, 255, 255, 0.2); /* Subtle border */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); /* Shadow */
+            z-index: 3; /* Above remote video */
+            background-color: #1c1c1e; /* Background if video not loaded */
         }
-
-        #localVideoContainer video {
-            position: relative;
+         #localVideo {
             width: 100%;
             height: 100%;
             object-fit: cover;
-        }
+            transform: scaleX(-1); /* Mirror front camera */
+         }
 
         .controls {
             position: absolute;
-            bottom: 20px;
+            bottom: calc(20px + env(safe-area-inset-bottom)); /* Position accounting for safe area */
             left: 50%;
             transform: translateX(-50%);
             display: flex;
             gap: 16px;
             background-color: var(--control-bg);
             backdrop-filter: blur(10px);
-            padding: 12px;
+            -webkit-backdrop-filter: blur(10px);
+            padding: 12px 20px; /* More horizontal padding */
             border-radius: 24px;
-            z-index: 3;
+            z-index: 3; /* Above videos */
         }
 
         .control-button {
@@ -395,44 +492,96 @@
             height: 50px;
             border-radius: 50%;
             background-color: rgba(120, 120, 128, 0.36);
+            color: #fff; /* Ensure icon color is white by default */
+            border: none; /* Remove border */
+            margin: 0; /* Remove margin */
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.2s ease;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
         }
+        .control-button i {
+             font-size: 20px; /* Adjust icon size */
+         }
 
         .control-button:hover {
             background-color: rgba(120, 120, 128, 0.5);
         }
+        .control-button:active {
+            transform: scale(0.95); /* Add active state */
+        }
+
+        #hangupButton { /* Special style for hangup */
+            background-color: #ff3b30; /* Red background */
+        }
+        #hangupButton:hover {
+            background-color: #db2c22; /* Darker red on hover */
+        }
+        #hangupButton i {
+            color: #fff; /* White icon */
+            transform: rotate(135deg); /* Correct orientation */
+        }
+
+        /* Style for muted/video off states */
+        .control-button.active-state {
+            background-color: #fff; /* White background when active (like iOS) */
+        }
+         .control-button.active-state i {
+             color: #000; /* Black icon when active */
+         }
+
 
         .call-popup {
+            display: none; /* Hidden by default */
             width: 270px;
             position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background-color: var(--header-bg);
+            background-color: rgba(58, 58, 60, 0.85); /* Dark, slightly transparent */
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
             border-radius: 14px;
             padding: 20px;
             text-align: center;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+            z-index: 30; /* Above everything */
         }
 
         .call-popup p {
             font-size: 17px;
             font-weight: 500;
             color: var(--text-color);
-            margin-bottom: 20px;
+            margin-bottom: 24px; /* More space before buttons */
+        }
+
+        .call-popup .button-row {
+            display: flex;
+            justify-content: space-around; /* Space out buttons */
+            gap: 10px;
         }
 
         .call-popup button {
             border-radius: 10px;
-            margin: 5px;
+            margin: 0; /* Remove margin */
+            flex: 1; /* Make buttons share space */
+            padding: 10px; /* Adjust padding */
+            font-weight: 500;
         }
 
-        .reject-button {
-            background-color: var(--error-color);
+        .accept-button { /* Style accept button */
+            background-color: var(--online-color); /* Green */
         }
+        .reject-button {
+            background-color: var(--error-color); /* Red */
+        }
+        .accept-button:active {
+            background-color: #2aa14a;
+        }
+        .reject-button:active {
+             background-color: #d63027;
+         }
 
         @media (max-width: 600px) {
             .message {
@@ -441,392 +590,640 @@
 
             .controls {
                 gap: 12px;
-                padding: 10px;
+                padding: 10px 15px;
             }
 
             .control-button {
-                width: 44px;
-                height: 44px;
+                width: 46px; /* Slightly smaller on mobile */
+                height: 46px;
             }
+             .control-button i {
+                 font-size: 18px;
+             }
 
             #localVideoContainer {
                 width: 90px;
-                height: 120px;
-                bottom: 10px;
+                height: 135px;
                 right: 10px;
+                bottom: calc(80px + env(safe-area-inset-bottom));
             }
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .message-row {
+            animation: fadeIn 0.2s ease-out;
         }
 
-        .message {
-            animation: fadeIn 0.2s ease;
+        .call-popup {
+            animation: fadeIn 0.3s ease-out;
         }
+
+        .chat-section {
+            display: flex;
+            flex-direction: column;
+            height: 100%; /* Ensures chat section fills its container */
+            background-color: var(--bg-color);
+            /* The children will now use flexbox to determine height */
+        }
+
+        .header {
+            /* ... (keep existing styles) */
+            flex-shrink: 0; /* Prevent header from shrinking */
+        }
+
+        .search-container {
+             /* ... (keep existing styles) */
+            flex-shrink: 0; /* Prevent search from shrinking */
+        }
+
+        .messages {
+            flex: 1; /* Takes up all available vertical space */
+            overflow-y: auto; /* Allows scrolling *within* this element */
+            padding: 8px 16px;
+            background-color: var(--bg-color);
+            display: flex;
+            flex-direction: column;
+            scroll-behavior: smooth;
+            /* No height: 100% needed here, flex: 1 handles it */
+        }
+
+        .chat-list {
+             flex: 1; /* Takes up all available vertical space */
+             overflow-y: auto; /* Allows scrolling *within* this element */
+             background-color: var(--bg-color);
+             display: flex;
+             flex-direction: column;
+             scroll-behavior: smooth;
+             /* No height: 100% needed here, flex: 1 handles it */
+        }
+
+
+        .input-area {
+            padding: 8px 12px 8px 16px; /* Adjusted padding */
+            background-color: var(--header-bg);
+            border-top: 0.5px solid var(--border-color);
+            display: flex;
+            align-items: flex-end; /* Align items to bottom */
+            gap: 8px;
+            /* REMOVED: position: sticky; */
+            /* REMOVED: bottom: 0; */
+            /* REMOVED: left: 0; */
+            /* REMOVED: right: 0; */
+            /* REMOVED: z-index: 10; */
+            flex-shrink: 0; /* Prevent input area from shrinking */
+            padding-bottom: calc(8px + env(safe-area-inset-bottom)); /* Keep safe area padding */
+        }
+
+        /* Ensure html/body still manage overall height */
+        html, body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
+            height: 100%; /* Correct for this layout */
+            width: 100%;
+            overflow: hidden; /* Prevent body scroll */
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            touch-action: manipulation;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* Ensure container takes full height */
+        .container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            /* Padding removed here, handled by sections or safe area as needed */
+            position: relative; /* Keep for absolutely positioned children like call popup */
+        }
+
     </style>
 </head>
 <body>
     <div class="container">
+        <!-- Authentication Section -->
         <div class="auth-section" id="authSection">
             <h1 style="text-align: center; margin-bottom: 24px; font-weight: 600;">Messages</h1>
-            <input type="email" id="email" placeholder="Email" required>
-            <input type="password" id="password" placeholder="Password" required>
+            <input type="email" id="email" placeholder="Email" required autocomplete="email">
+            <input type="password" id="password" placeholder="Password" required autocomplete="current-password">
             <button onclick="signup()">Sign Up</button>
             <button onclick="login()">Log In</button>
             <div id="authStatus" class="error"></div>
         </div>
 
+        <!-- Chat Section -->
         <div class="chat-section" id="chatSection" style="display: none;">
+            <!-- Header -->
             <div class="header">
-                <button class="header-button" style="margin-right: 10px; display: none;" id="backButton" onclick="goBackToChatList()">
-                    <i class="fas fa-arrow-left"></i>
-                </button>
+                <div class="header-left">
+                    <button class="header-button" style="display: none;" id="backButton" onclick="goBackToChatList()">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                </div>
                 <div class="header-title" id="chatTitle">Messages</div>
                 <div class="header-actions">
-                    <button style="padding-top: 10px; margin-right: 20px;" class="header-button" onclick="startVideoCall()">
-                        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M15 10L19.5528 6.72361C20.2177 6.19116 21 6.63973 21 7.44721V16.5528C21 17.3603 20.2177 17.8088 19.5528 17.2764L15 14M5 18H13C14.1046 18 15 17.1046 15 16V8C15 6.89543 14.1046 6 13 6H5C3.89543 6 3 6.89543 3 8V16C3 17.1046 3.89543 18 5 18Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
+                     <button class="header-button" id="videoCallButton" onclick="startVideoCall()" style="display: none;"> <!-- Hidden initially -->
+                        <i class="fas fa-video"></i>
                     </button>
-                    <button style="color: red;" class="header-button" onclick="logout()">
+                    <button class="header-button logout-button" onclick="logout()">
                         Logout
                     </button>
                 </div>
             </div>
 
+            <!-- Search Area -->
             <div class="search-container" id="searchContainer">
-                <input type="email" id="searchInput" placeholder="Find a friend" class="search-input">
+                <input type="email" id="searchInput" placeholder="Search by email" class="search-input">
                 <button class="search-button" onclick="searchUser()"><i class="fas fa-search"></i></button>
             </div>
             <div id="searchResult"></div>
 
+            <!-- Chat List -->
             <div class="chat-list" id="chatList">
                 <!-- Chat list items will be loaded here -->
+                <div style="padding: 20px; text-align: center; color: var(--secondary-text);">Loading chats...</div>
             </div>
 
+            <!-- Messages Area -->
             <div class="messages" id="messages" style="display: none;"></div>
 
+            <!-- Input Area -->
             <div class="input-area" id="inputArea" style="display: none;">
-                <input type="text" id="messageInput" placeholder="iMessage" class="message-input">
-                <button class="send-button" type="button" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
+                <input type="text" id="messageInput" placeholder="Message" class="message-input"></input> <!-- Changed to input for simplicity, adjust if textarea needed -->
+                <button class="send-button" type="button" onclick="sendMessage()"><i class="fas fa-arrow-up"></i></button>
             </div>
         </div>
 
+        <!-- Video Call Overlay -->
         <div id="videoCallContainer" class="video-call-container">
             <div class="video-grid">
-                <div class="video-container" id="remoteVideoContainer">
+                <div id="remoteVideoContainer">
                     <video id="remoteVideo" autoplay playsinline></video>
                 </div>
-                <div class="video-container" id="localVideoContainer">
+                <div id="localVideoContainer">
                     <video id="localVideo" autoplay playsinline muted></video>
                 </div>
             </div>
             <div id="controls" class="controls">
-                <button class="control-button" id="muteButton" title="Mute Audio"><i class="fa-solid fa-microphone fa-lg" style="color: #ffffff;"></i></button>
-                <button class="control-button" id="hangupButton" title="End Call"><i class="fa-solid fa-phone fa-lg" style="color: #ff3b30; transform: rotate(135deg);"></i></button>
-                <button class="control-button" id="videoButton" title="Stop Video"><i class="fa-solid fa-video fa-lg" style="color: #ffffff;"></i></button>
-                <button class="control-button" title="Flip Camera" onclick="switchCamera()"><i class="fa-solid fa-repeat fa-lg" style="color: #ffffff;"></i></button>
+                <button class="control-button" id="muteButton" title="Mute Audio"><i class="fa-solid fa-microphone fa-lg"></i></button>
+                <button class="control-button" id="videoButton" title="Stop Video"><i class="fa-solid fa-video fa-lg"></i></button>
+                <button class="control-button" title="Flip Camera" onclick="switchCamera()"><i class="fa-solid fa-rotate fa-lg"></i></button> <!-- Changed icon -->
+                <button class="control-button" id="hangupButton" title="End Call"><i class="fa-solid fa-phone fa-lg"></i></button>
             </div>
         </div>
 
-        <div id="callPopup" class="call-popup" style="display: none;">
-            <p id="callMessage"></p>
-            <button onclick="joinVideoCall()">Join Call</button>
-            <button class="reject-button" onclick="rejectCall()">Reject</button>
+        <!-- Incoming Call Popup -->
+        <div id="callPopup" class="call-popup">
+            <p id="callMessage">Incoming Call...</p>
+            <div class="button-row">
+                <button class="reject-button" onclick="rejectCall()">Decline</button>
+                <button class="accept-button" onclick="joinVideoCall()">Accept</button>
+            </div>
         </div>
     </div>
 
     <script>
         const firebaseConfig = {
-            apiKey: "AIzaSyA8hSMoS0eJwV95-150YLYa7-BiEBzQRE0",
-            authDomain: "airx-9a82d.firebaseapp.com",
-            projectId: "airx-9a82d",
-            storageBucket: "airx-9a82d.appspot.com",
-            messagingSenderId: "375800409271",
-            appId: "1:375800409271:web:2ab2fd39a257874eb87132",
-            measurementId: "G-0S0Z53KH4E"
+            apiKey: "AIzaSyCQGE1Z_ikaZVjajxRS9TdHq23_ic7W5q4",
+  authDomain: "fir-c0c18.firebaseapp.com",
+  databaseURL: "https://fir-c0c18-default-rtdb.firebaseio.com",
+  projectId: "fir-c0c18",
+  storageBucket: "fir-c0c18.firebasestorage.app",
+  messagingSenderId: "11840063593",
+  appId: "1:11840063593:web:73ac480ff6c200b7dfbaf8" // IMPORTANT: Add your Realtime Database URL
         };
 
+        // --- Firebase Initialization ---
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.database();
-        let currentUser = null;
-        let chatPartner = null;
-        let currentChatId = null;
-        let chatListCache = {};
-        let isChatListLoading = false;
 
+        // --- Global State ---
+        let currentUser = null;
+        let chatPartner = null; // { uid: string, email: string }
+        let currentChatId = null; // string like 'uid1_uid2'
+        let isChatListLoading = false;
+        let presenceRef = null; // Reference for online status
+        let userStatusListener = null; // Listener for own status
+        let chatListStatusListeners = {}; // uid -> listener { ref, callback }
+
+        // --- WebRTC State ---
         const configuration = {
             iceServers: [
                 { urls: 'stun:stun.l.google.com:19302' },
-                { urls: 'stun:stun1.l.google.com:19302' }
+                { urls: 'stun:stun1.l.google.com:19302' },
+                { urls: 'stun:stun2.l.google.com:19302' }
             ]
         };
         let peerConnection = null;
         let localStream = null;
         let remoteStream = null;
-        let callId = null;
+        let incomingCallId = null; // Store ID of incoming call offer
+        let incomingCallData = null; // Store fetched data for the incoming call
+        let outgoingCallId = null; // Store ID of outgoing call offer
+        let callListeners = {}; // To store DB listeners related to a call { answer: ref, candidates: { partnerUid: ref }, status: ref }
         let isAudioMuted = false;
         let isVideoOff = false;
         let currentFacingMode = 'user';
-        let pendingIceCandidates = [];
+        let pendingIceCandidates = []; // Store candidates received before remote description is set
 
+        // --- UI Elements ---
+        const authSection = document.getElementById('authSection');
+        const chatSection = document.getElementById('chatSection');
+        const authStatus = document.getElementById('authStatus');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const backButton = document.getElementById('backButton');
+        const chatTitle = document.getElementById('chatTitle');
+        const searchContainer = document.getElementById('searchContainer');
+        const searchInput = document.getElementById('searchInput');
+        const searchResult = document.getElementById('searchResult');
+        const chatListDiv = document.getElementById('chatList');
+        const messagesDiv = document.getElementById('messages');
+        const inputArea = document.getElementById('inputArea');
+        const messageInput = document.getElementById('messageInput');
+        const videoCallButton = document.getElementById('videoCallButton');
+        const videoCallContainer = document.getElementById('videoCallContainer');
+        const localVideo = document.getElementById('localVideo');
+        const remoteVideo = document.getElementById('remoteVideo');
+        const callPopup = document.getElementById('callPopup');
+        const callMessage = document.getElementById('callMessage');
+        const muteButton = document.getElementById('muteButton');
+        const videoButton = document.getElementById('videoButton');
+        const hangupButton = document.getElementById('hangupButton');
+
+
+        // --- Authentication ---
         auth.onAuthStateChanged((user) => {
             if (user) {
-                currentUser = user;
-                document.getElementById('authSection').style.display = 'none';
-                document.getElementById('chatSection').style.display = 'flex';
+                console.log("User logged in:", user.uid, user.email);
+                currentUser = { uid: user.uid, email: user.email };
+                authSection.style.display = 'none';
+                chatSection.style.display = 'flex';
+                authStatus.textContent = '';
                 saveUserToDatabase(user);
-                listenForIncomingCalls();
-                loadChatList();
+                setupPresenceSystem();
+                listenForIncomingCalls(); // Start listening *after* user is confirmed
+                goBackToChatList();
             } else {
+                console.log("User logged out");
+                if (presenceRef) {
+                    presenceRef.set({ online: false, last_seen: firebase.database.ServerValue.TIMESTAMP });
+                    presenceRef.onDisconnect().cancel();
+                }
+                if (userStatusListener) db.ref('.info/connected').off('value', userStatusListener);
+
                 currentUser = null;
                 chatPartner = null;
                 currentChatId = null;
-                document.getElementById('authSection').style.display = 'block';
-                document.getElementById('chatSection').style.display = 'none';
-                document.getElementById('messages').innerHTML = '';
-                document.getElementById('chatList').innerHTML = '';
-                document.getElementById('searchResult').textContent = '';
-                document.getElementById('chatTitle').textContent = 'Messages';
-                document.getElementById('messages').style.display = 'none';
-                document.getElementById('inputArea').style.display = 'none';
-                document.getElementById('backButton').style.display = 'none';
-                document.getElementById('searchContainer').style.display = 'none';
-                cleanupCall();
+                authSection.style.display = 'flex';
+                chatSection.style.display = 'none';
+                messagesDiv.innerHTML = '';
+                chatListDiv.innerHTML = '';
+                searchResult.textContent = '';
+                searchResult.style.display = 'none';
+                chatTitle.textContent = 'Messages';
+                messagesDiv.style.display = 'none';
+                inputArea.style.display = 'none';
+                backButton.style.display = 'none';
+                searchContainer.style.display = 'flex';
+                videoCallButton.style.display = 'none';
+                cleanupCall("User logged out"); // Clean up any lingering call state
+                clearChatListStatusListeners();
+                // Stop listening for calls specifically if needed (though logout should handle cleanup)
+                db.ref('calls').off(); // More aggressive cleanup on logout
             }
         });
 
         function signup() {
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
+            const email = emailInput.value;
+            const password = passwordInput.value;
+            authStatus.textContent = '';
             auth.createUserWithEmailAndPassword(email, password)
+                .then(() => console.log("Signup successful"))
                 .catch((error) => {
-                    document.getElementById('authStatus').textContent = error.message;
+                    console.error("Signup error:", error);
+                    authStatus.textContent = error.message;
                 });
         }
 
         function login() {
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
+            const email = emailInput.value;
+            const password = passwordInput.value;
+            authStatus.textContent = '';
             auth.signInWithEmailAndPassword(email, password)
+                 .then(() => console.log("Login successful"))
                 .catch((error) => {
-                    document.getElementById('authStatus').textContent = error.message;
+                    console.error("Login error:", error);
+                    authStatus.textContent = error.message;
                 });
+        }
+
+        function logout() {
+            cleanupCall("User clicked logout");
+            auth.signOut().catch((error) => {
+                console.error('Logout error:', error);
+                authStatus.textContent = 'Logout failed: ' + error.message;
+            });
         }
 
         function saveUserToDatabase(user) {
             const userRef = db.ref('users/' + user.uid);
-            userRef.set({
+            userRef.update({
                 email: user.email,
-                lastLogin: firebase.database.ServerValue.TIMESTAMP
+                uid: user.uid
             });
         }
 
+        // --- Presence System ---
+        function setupPresenceSystem() {
+            if (!currentUser) return;
+            const connectedRef = db.ref('.info/connected');
+            presenceRef = db.ref('status/' + currentUser.uid);
+
+            userStatusListener = connectedRef.on('value', (snap) => {
+                if (snap.val() === true) {
+                    presenceRef.set({ online: true, last_seen: firebase.database.ServerValue.TIMESTAMP });
+                    presenceRef.onDisconnect().set({ online: false, last_seen: firebase.database.ServerValue.TIMESTAMP });
+                    console.log("Presence set to online for", currentUser.uid);
+                } else {
+                     console.log("Presence detected disconnected for", currentUser.uid);
+                }
+            });
+        }
+
+         function clearChatListStatusListeners() {
+            Object.values(chatListStatusListeners).forEach(listener => {
+                if (listener.ref && listener.callback) {
+                    listener.ref.off('value', listener.callback);
+                }
+            });
+            chatListStatusListeners = {};
+         }
+
+        // --- Chat Management ---
         async function searchUser() {
-            const searchEmail = document.getElementById('searchInput').value.trim();
-            if (!searchEmail || !currentUser) return;
+            const searchEmailValue = searchInput.value.trim();
+            searchResult.style.display = 'block';
+            searchResult.textContent = 'Searching...';
+            if (!searchEmailValue || !currentUser) {
+                 searchResult.textContent = 'Please enter an email.';
+                 return;
+            }
+            if (searchEmailValue === currentUser.email) {
+                 searchResult.textContent = "You can't chat with yourself!";
+                 return;
+            }
 
             try {
-                const snapshot = await db.ref('users').orderByChild('email').equalTo(searchEmail).once('value');
-                document.getElementById('searchResult').style.display = 'block';
+                const snapshot = await db.ref('users').orderByChild('email').equalTo(searchEmailValue).once('value');
+
                 if (snapshot.exists()) {
                     const userData = snapshot.val();
                     const userId = Object.keys(userData)[0];
-                    if (userId === currentUser.uid) {
-                        document.getElementById('searchResult').textContent = "You can't chat with yourself!";
-                        return;
-                    }
-                    chatPartner = {
-                        uid: userId,
-                        email: userData[userId].email
-                    };
+                    const userEmail = userData[userId].email;
+
+                    chatPartner = { uid: userId, email: userEmail };
                     currentChatId = [currentUser.uid, chatPartner.uid].sort().join('_');
-                    document.getElementById('searchResult').textContent = `Connected with ${chatPartner.email}`;
-                    document.getElementById('chatTitle').textContent = chatPartner.email.split('@')[0];
-                    document.getElementById('chatList').style.display = 'none';
-                    document.getElementById('messages').style.display = 'flex';
-                    document.getElementById('inputArea').style.display = 'flex';
-                    document.getElementById('backButton').style.display = 'block';
-                    document.getElementById('searchContainer').style.display = 'none';
-                    loadMessages();
+
+                    searchResult.textContent = `Found ${chatPartner.email}. Starting chat...`;
+                    searchInput.value = '';
+
+                    setTimeout(() => {
+                        searchResult.style.display = 'none';
+                        loadMessages(currentChatId);
+                    }, 1000);
+
                 } else {
-                    document.getElementById('searchResult').textContent = 'User not found';
+                    searchResult.textContent = 'User not found.';
                     chatPartner = null;
                     currentChatId = null;
-                    document.getElementById('messages').innerHTML = '';
-                    document.getElementById('chatTitle').textContent = 'Messages';
-                    document.getElementById('messages').style.display = 'none';
-                    document.getElementById('inputArea').style.display = 'none';
-                    document.getElementById('backButton').style.display = 'none';
-                    document.getElementById('searchContainer').style.display = 'flex';
                 }
             } catch (error) {
                 console.error('Search error:', error);
-                document.getElementById('searchResult').textContent = 'Error searching user';
+                searchResult.textContent = 'Error searching user.';
             }
         }
 
-        function sendMessage(event) {
-            if (event) {
-                event.preventDefault();
-            }
+        function sendMessage() {
+            const messageText = messageInput.value.trim();
+            if (!messageText || !chatPartner || !currentChatId || !currentUser) return;
 
-            const message = document.getElementById('messageInput').value.trim();
-            if (!message || !chatPartner || !currentChatId || !currentUser) return;
+            const messageData = {
+                senderUid: currentUser.uid,
+                message: messageText,
+                timestamp: firebase.database.ServerValue.TIMESTAMP,
+            };
 
-            db.ref(`chats/${currentChatId}`)
-                .push({
-                    sender: currentUser.uid,
-                    message: message,
-                    timestamp: firebase.database.ServerValue.TIMESTAMP,
+            const chatMessagesRef = db.ref(`chats/${currentChatId}/messages`);
+            const chatMetadataRef = db.ref(`chats/${currentChatId}/metadata`);
+
+            chatMessagesRef.push(messageData)
+                .then(() => {
+                    return chatMetadataRef.update({ // Chain the metadata update
+                        lastTimestamp: firebase.database.ServerValue.TIMESTAMP,
+                        lastMessage: messageText,
+                        participants: {
+                            [currentUser.uid]: true,
+                            [chatPartner.uid]: true
+                        }
+                    });
                 })
                 .then(() => {
-                    document.getElementById('messageInput').value = '';
-                    updateLastMessageInChatList(currentChatId, message);
+                    messageInput.value = '';
+                    messageInput.style.height = '38px';
                 })
                 .catch((error) => {
                     console.error('Send message error:', error);
-                    document.getElementById('searchResult').textContent = 'Failed to send message';
                 });
         }
 
-        function loadMessages(selectedChatId = currentChatId) {
-            if (!selectedChatId) return;
+        function loadMessages(selectedChatId) {
+            if (!selectedChatId || !currentUser) return;
+
+            // Clear previous messages and stop listening to old chat
+            if (currentChatId && currentChatId !== selectedChatId) {
+                 db.ref(`chats/${currentChatId}/messages`).off();
+                 console.log(`Stopped listening to messages for ${currentChatId}`);
+            }
+             messagesDiv.innerHTML = ''; // Clear display
+
             currentChatId = selectedChatId;
+            console.log(`Loading messages for chat: ${currentChatId}`);
 
-            const messagesDiv = document.getElementById('messages');
-            let lastMessageKey = null;
-
-            db.ref(`chats/${currentChatId}`).off();
-            db.ref(`chats/${currentChatId}`).on('value', (snapshot) => {
-                if (!snapshot.exists()) {
-                    messagesDiv.innerHTML = '';
-                    return;
-                }
-
-                const messages = [];
-                snapshot.forEach((child) => {
-                    messages.push({ key: child.key, ...child.val() });
-                });
-
-                messages.sort((a, b) => a.timestamp - b.timestamp);
-
-                const newLastMessageKey = messages.length > 0 ? messages[messages.length - 1].key : null;
-                if (lastMessageKey === newLastMessageKey) {
-                    return;
-                }
-                lastMessageKey = newLastMessageKey;
-
-                messagesDiv.innerHTML = '';
-                messages.forEach((data) => {
-                    const messageRowClass = data.sender === currentUser.uid ? 'sent' : 'received';
-                    const time = new Date(data.timestamp).toLocaleTimeString('en-US', {
-                        hour: 'numeric',
-                        minute: '2-digit',
-                        hour12: true,
-                    });
-
-                    const messageElement = document.createElement('div');
-                    messageElement.className = `message-row ${messageRowClass}`;
-                    messageElement.innerHTML = `
-                        <div class="message">
-                            ${data.message}
-                            <div class="timestamp">${time}</div>
-                        </div>
-                    `;
-                    messagesDiv.appendChild(messageElement);
-                });
-
-                messagesDiv.scrollTop = messagesDiv.scrollHeight;
-            }, (error) => {
-                console.error('Load messages error:', error);
-            });
-
+             // Determine partner UID
             const chatUsers = currentChatId.split('_');
             const partnerUid = chatUsers.find((uid) => uid !== currentUser.uid);
-            db.ref('users/' + partnerUid).once('value', (snapshot) => {
-                if (snapshot.exists()) {
-                    chatPartner = { uid: partnerUid, email: snapshot.val().email };
-                    document.getElementById('chatTitle').textContent = chatPartner.email.split('@')[0];
-                }
-            });
 
-            document.getElementById('chatList').style.display = 'none';
-            document.getElementById('messages').style.display = 'flex';
-            document.getElementById('inputArea').style.display = 'flex';
-            document.getElementById('backButton').style.display = 'block';
-            document.getElementById('searchContainer').style.display = 'none';
+            if (!partnerUid) {
+                console.error("Could not determine partner UID from chat ID:", currentChatId);
+                goBackToChatList(); // Go back if chat ID is invalid
+                return;
+            }
+
+             // Fetch partner details and then listen for messages
+             db.ref('users/' + partnerUid).once('value', (snapshot) => {
+                 if (snapshot.exists()) {
+                     chatPartner = { uid: partnerUid, email: snapshot.val().email };
+                     chatTitle.textContent = chatPartner.email.split('@')[0];
+                     videoCallButton.style.display = 'flex';
+
+                     // Now, listen for messages
+                     const messagesRef = db.ref(`chats/${currentChatId}/messages`);
+                     messagesRef.orderByChild('timestamp').on('child_added', (msgSnapshot) => {
+                         if (!msgSnapshot.exists()) return;
+                         const data = msgSnapshot.val();
+                         renderMessage(data);
+                     }, (error) => {
+                         console.error('Load messages error:', error);
+                         // Maybe display an error in the chat window
+                     });
+                      console.log(`Started listening to messages for ${currentChatId}`);
+
+                 } else {
+                     console.error("Partner data not found for chat:", currentChatId);
+                     goBackToChatList(); // Go back if partner is missing
+                     return;
+                 }
+             }, (error) => {
+                console.error("Error fetching partner details:", error);
+                goBackToChatList(); // Go back on error
+             });
+
+
+            // Update UI layout
+            chatListDiv.style.display = 'none';
+            searchContainer.style.display = 'none';
+            searchResult.style.display = 'none';
+            messagesDiv.style.display = 'flex';
+            inputArea.style.display = 'flex';
+            backButton.style.display = 'flex';
+        }
+
+        function renderMessage(data) {
+            if (!data || !currentUser) return; // Basic validation
+
+            const messageRowClass = data.senderUid === currentUser.uid ? 'sent' : 'received';
+            const time = data.timestamp ? new Date(data.timestamp).toLocaleTimeString('en-US', {
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true,
+            }) : '';
+
+            const messageElement = document.createElement('div');
+            messageElement.className = `message-row ${messageRowClass}`;
+            const sanitizedMessage = (data.message || '').replace(/</g, "<").replace(/>/g, ">");
+
+            messageElement.innerHTML = `
+                <div class="message">
+                    ${sanitizedMessage}
+                    <div class="timestamp">${time}</div>
+                </div>
+            `;
+            messagesDiv.appendChild(messageElement);
+
+            // Scroll to the bottom smoothly ONLY if the user isn't scrolled up
+            // (Debatable: always scroll?) Let's always scroll for now.
+            messagesDiv.scrollTo({ top: messagesDiv.scrollHeight, behavior: 'smooth' });
         }
 
         async function loadChatList() {
-            if (isChatListLoading) return;
+            if (!currentUser || isChatListLoading) return;
             isChatListLoading = true;
-            const chatListDiv = document.getElementById('chatList');
-            chatListDiv.innerHTML = '';
-            document.getElementById('chatTitle').textContent = 'Messages';
-            document.getElementById('backButton').style.display = 'none';
-            document.getElementById('chatList').style.display = 'flex';
-            document.getElementById('messages').style.display = 'none';
-            document.getElementById('inputArea').style.display = 'none';
-            document.getElementById('searchContainer').style.display = 'flex';
+            chatListDiv.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--secondary-text);">Loading chats...</div>';
+
+            clearChatListStatusListeners();
+
+            chatTitle.textContent = 'Messages';
+            backButton.style.display = 'none';
+            chatListDiv.style.display = 'flex';
+            messagesDiv.style.display = 'none';
+            inputArea.style.display = 'none';
+            searchContainer.style.display = 'flex';
+            videoCallButton.style.display = 'none';
             currentChatId = null;
             chatPartner = null;
 
-            const userChatsRef = db.ref('chats');
-            const chats = [];
-
             try {
-                const snapshot = await userChatsRef.orderByChild('timestamp').limitToLast(100).once('value');
+                 // Query chats where the user is a participant, ordered by last activity
+                const snapshot = await db.ref('chats')
+                                     .orderByChild(`metadata/participants/${currentUser.uid}`)
+                                     .equalTo(true)
+                                     .once('value');
+
+                const chatsData = [];
                 if (snapshot.exists()) {
                     snapshot.forEach(chatSnapshot => {
                         const chatId = chatSnapshot.key;
-                        if (chatId.includes(currentUser.uid)) {
-                            const lastMessageKey = Object.keys(chatSnapshot.val()).filter(key => !['answer', 'candidates', 'caller', 'offer', 'timestamp'].includes(key)).pop();
-                            if (lastMessageKey) {
-                                const lastMessageData = chatSnapshot.val()[lastMessageKey];
-                                const chatUsers = chatId.split('_');
-                                const partnerUid = chatUsers.find(uid => uid !== currentUser.uid);
-
-                                chats.push({
+                        const metadata = chatSnapshot.val().metadata;
+                        if (metadata && chatId.includes('_')) { // Ensure valid chat ID format
+                             const chatUsers = chatId.split('_');
+                             const partnerUid = chatUsers.find(uid => uid !== currentUser.uid);
+                             if (partnerUid) {
+                                chatsData.push({
                                     chatId: chatId,
                                     partnerUid: partnerUid,
-                                    lastMessage: lastMessageData.message,
-                                    timestamp: lastMessageData.timestamp
+                                    lastMessage: metadata.lastMessage || '',
+                                    timestamp: metadata.lastTimestamp || 0
                                 });
-                            }
+                             }
                         }
                     });
+                }
 
-                    chats.sort((a, b) => b.timestamp - a.timestamp);
+                chatsData.sort((a, b) => b.timestamp - a.timestamp);
+                chatListDiv.innerHTML = ''; // Clear loading
 
-                    if (chats.length === 0) {
-                        chatListDiv.innerHTML = '<div style="padding: 16px; text-align: center; color: var(--secondary-text);">No chats yet. Search for a user to start chatting.</div>';
-                    } else {
-                        for (const chat of chats) {
-                            const userSnapshot = await db.ref('users/' + chat.partnerUid).once('value');
-                            if (userSnapshot.exists()) {
-                                const partnerEmail = userSnapshot.val().email;
-                                const chatItem = document.createElement('div');
-                                chatItem.className = 'chat-item';
-                                chatItem.innerHTML = `
-                                    <div class="chat-item-info">
-                                        <div class="chat-item-email">${partnerEmail}</div>
-                                        <div class="chat-item-last-message">${chat.lastMessage || ''}</div>
-                                    </div>
-                                `;
-                                chatItem.addEventListener('click', () => {
-                                    chatPartner = { uid: chat.partnerUid, email: partnerEmail };
-                                    loadMessages(chat.chatId);
-                                });
-                                chatListDiv.appendChild(chatItem);
-                            }
-                        }
-                    }
-                } else {
+                if (chatsData.length === 0) {
                     chatListDiv.innerHTML = '<div style="padding: 16px; text-align: center; color: var(--secondary-text);">No chats yet. Search for a user to start chatting.</div>';
+                } else {
+                    // Fetch user data concurrently for potentially faster loading
+                    const partnerPromises = chatsData.map(chat =>
+                        db.ref('users/' + chat.partnerUid).once('value')
+                          .then(snap => ({ ...chat, partnerData: snap.val() }))
+                          .catch(err => {
+                              console.error(`Failed to fetch partner data for ${chat.partnerUid}`, err);
+                              return { ...chat, partnerData: null }; // Handle fetch error
+                          })
+                    );
+
+                    const resolvedChats = await Promise.all(partnerPromises);
+
+                    resolvedChats.forEach(chat => {
+                         if (chat.partnerData) {
+                            const partnerEmail = chat.partnerData.email;
+                            const chatItem = document.createElement('div');
+                            chatItem.className = 'chat-item';
+                            chatItem.setAttribute('data-chat-id', chat.chatId);
+                            chatItem.setAttribute('data-partner-uid', chat.partnerUid);
+
+                            const sanitizedLastMessage = (chat.lastMessage || '').replace(/</g, "<").replace(/>/g, ">");
+
+                            chatItem.innerHTML = `
+                                <div class="chat-item-avatar">${partnerEmail ? partnerEmail.charAt(0).toUpperCase() : '?'}</div>
+                                <div class="chat-item-info">
+                                    <div class="chat-item-header">
+                                        <div class="chat-item-email">${partnerEmail || 'Unknown User'}</div>
+                                        <span class="status-dot offline" id="status-${chat.partnerUid}"></span>
+                                    </div>
+                                    <div class="chat-item-last-message">${sanitizedLastMessage}</div>
+                                </div>
+                            `;
+
+                            chatItem.addEventListener('click', () => {
+                                chatPartner = { uid: chat.partnerUid, email: partnerEmail };
+                                loadMessages(chat.chatId);
+                            });
+                            chatListDiv.appendChild(chatItem);
+                            listenForPartnerStatus(chat.partnerUid); // Listen for status
+                         } else {
+                              console.warn(`Skipping chat item for missing partner: ${chat.partnerUid}`);
+                         }
+                    });
                 }
             } catch (error) {
                 console.error("Error loading chat list:", error);
@@ -836,265 +1233,522 @@
             }
         }
 
-        function updateLastMessageInChatList(chatId, message) {
-            if (document.getElementById('messages').style.display === 'flex') {
-                return;
+        function listenForPartnerStatus(partnerUid) {
+            if (!partnerUid) return;
+            if (chatListStatusListeners[partnerUid]) { // Avoid duplicates
+                // Optional: Refresh listener if needed, but usually .on() handles updates
+                 // chatListStatusListeners[partnerUid].ref.off('value', chatListStatusListeners[partnerUid].callback);
+                 // console.log(`Refreshed status listener for ${partnerUid}`);
+                 return; // Already listening
             }
+            console.log(`Setting up status listener for ${partnerUid}`);
 
-            const chatItems = document.querySelectorAll('.chat-item');
-            let targetChatItem = null;
-
-            chatItems.forEach((item) => {
-                const emailElement = item.querySelector('.chat-item-email');
-                if (emailElement && emailElement.textContent === chatPartner.email) {
-                    targetChatItem = item;
+            const statusRef = db.ref(`status/${partnerUid}`);
+            const callback = (snapshot) => {
+                const statusData = snapshot.val();
+                const statusDot = document.getElementById(`status-${partnerUid}`);
+                if (statusDot) {
+                    if (statusData && statusData.online === true) {
+                        statusDot.classList.remove('offline');
+                        statusDot.classList.add('online');
+                    } else {
+                        statusDot.classList.remove('online');
+                        statusDot.classList.add('offline');
+                    }
+                } else {
+                    // Element might not be rendered yet or removed, stop listening?
+                    // console.warn(`Status dot for ${partnerUid} not found.`);
+                    // statusRef.off('value', callback); // Consider removing if element is gone
+                    // delete chatListStatusListeners[partnerUid];
                 }
+            };
+
+            statusRef.on('value', callback, (error) => {
+                 console.error(`Error listening to status for ${partnerUid}:`, error);
+                 // Optionally remove listener on error
+                 delete chatListStatusListeners[partnerUid];
             });
-
-            if (targetChatItem) {
-                const lastMessageElement = targetChatItem.querySelector('.chat-item-last-message');
-                if (lastMessageElement) {
-                    lastMessageElement.textContent = message;
-                }
-                const chatListDiv = document.getElementById('chatList');
-                chatListDiv.prepend(targetChatItem);
-            } else {
-                if (!currentChatId) {
-                    loadChatList();
-                }
-            }
+             chatListStatusListeners[partnerUid] = { ref: statusRef, callback: callback };
         }
 
         function goBackToChatList() {
+            if (currentChatId) {
+                db.ref(`chats/${currentChatId}/messages`).off(); // Stop listening to messages for the previous chat
+                console.log(`Stopped listening to messages for ${currentChatId}`);
+            }
+             // Don't cleanupCall here unless necessary, user might just be switching chats
+             // cleanupCall("Navigating back to chat list");
             loadChatList();
         }
 
-        function logout() {
-            auth.signOut()
-                .catch((error) => {
-                    console.error('Logout error:', error);
-                });
-        }
+        // --- WebRTC Video Call Logic ---
+
+        async function getMediaStream() {
+             try {
+                 const constraints = {
+                     video: { facingMode: currentFacingMode, width: { ideal: 640 }, height: { ideal: 480 } },
+                     audio: { echoCancellation: true, noiseSuppression: true }
+                 };
+                 localStream = await navigator.mediaDevices.getUserMedia(constraints);
+                 localVideo.srcObject = localStream;
+                 localVideo.style.display = 'block';
+                 console.log("Local media stream obtained.");
+                 return true;
+             } catch (error) {
+                 console.error('Error accessing media devices:', error);
+                 alert(`Could not access camera/microphone: ${error.message}. Please check permissions.`);
+                 localVideo.style.display = 'none';
+                 return false;
+             }
+         }
 
         async function startVideoCall() {
             if (!chatPartner || !currentUser) {
-                alert("Please select a chat partner first!");
+                alert("Cannot start call: No chat partner selected.");
+                return;
+            }
+            if (peerConnection) {
+                alert("Cannot start call: Already in a call.");
+                return;
+            }
+            console.log(`Attempting to call ${chatPartner.email} (${chatPartner.uid})`);
+
+            if (!await getMediaStream()) {
                 return;
             }
 
-            if (peerConnection || callId) {
-                alert("A call is already in progress!");
-                return;
-            }
+            // Ensure cleanup of any residual listeners before starting new call setup
+            removeCallListeners();
 
-            callId = `${currentUser.uid}_${chatPartner.uid}_${Date.now()}`;
-            pendingIceCandidates = [];
+            peerConnection = new RTCPeerConnection(configuration);
+            console.log("RTCPeerConnection created.");
+            setupPeerConnectionListeners(); // Generic listeners
+
+            localStream.getTracks().forEach(track => {
+                peerConnection.addTrack(track, localStream);
+                console.log("Local track added:", track.kind);
+            });
+
+            const callRef = db.ref('calls').push();
+            outgoingCallId = callRef.key;
+            console.log("Generated outgoing call ID:", outgoingCallId);
 
             try {
-                const constraints = {
-                    video: { facingMode: currentFacingMode, width: { ideal: 1280 }, height: { ideal: 720 } },
-                    audio: true
-                };
-                localStream = await navigator.mediaDevices.getUserMedia(constraints);
-                document.getElementById('localVideo').srcObject = localStream;
-
-                peerConnection = new RTCPeerConnection(configuration);
-                setupPeerConnection();
-
-                localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
-
                 const offer = await peerConnection.createOffer();
                 await peerConnection.setLocalDescription(offer);
+                console.log("Offer created and set as local description.");
 
-                await db.ref(`calls/${callId}`).set({
-                    caller: currentUser.email,
-                    callee: chatPartner.email,
+                await callRef.set({
+                    callerUid: currentUser.uid,
+                    callerEmail: currentUser.email,
+                    calleeUid: chatPartner.uid,
                     offer: { type: offer.type, sdp: offer.sdp },
+                    status: 'ringing',
                     timestamp: firebase.database.ServerValue.TIMESTAMP
                 });
+                console.log("Call document created in Firebase with offer.");
 
-                console.log('Offer created and sent:', offer);
-
-                db.ref(`calls/${callId}/answer`).on('value', async (snapshot) => {
-                    const answer = snapshot.val();
-                    if (answer && peerConnection.signalingState === 'have-local-offer') {
-                        try {
-                            await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
-                            console.log('Answer received and set:', answer);
-                            applyPendingIceCandidates();
-                        } catch (error) {
-                            console.error('Error setting remote description:', error);
-                        }
-                    }
+                // Listen for Answer
+                const answerRef = db.ref(`calls/${outgoingCallId}/answer`);
+                callListeners.answer = { ref: answerRef, handler: handleAnswer }; // Store ref and handler
+                answerRef.on('value', handleAnswer, (error) => {
+                     console.error("Error listening for answer:", error);
+                     cleanupCall("Failed to establish connection.");
                 });
 
+                // Listen for Callee's Candidates
+                listenForRemoteCandidates(chatPartner.uid, outgoingCallId);
+
+                // Listen for call status changes (e.g., rejected, ended by callee)
+                 listenForCallStatus(outgoingCallId);
+
+
                 showVideoCallUI();
+
             } catch (error) {
-                console.error('Error starting video call:', error);
-                alert(`Failed to start video call: ${error.message}`);
-                cleanupCall();
+                console.error('Error during call setup (caller):', error);
+                cleanupCall(`Call setup failed: ${error.message}`);
             }
         }
 
         function listenForIncomingCalls() {
             if (!currentUser) return;
+            console.log("Listening for incoming calls for user:", currentUser.uid);
 
-            db.ref('calls').off('child_added');
-            db.ref('calls').on('child_added', (snapshot) => {
+            const callsQuery = db.ref('calls').orderByChild('calleeUid').equalTo(currentUser.uid);
+
+            // Detach previous listener if any (safety measure)
+            callsQuery.off('child_added');
+
+            callsQuery.on('child_added', async (snapshot) => {
+                const callKey = snapshot.key;
                 const callData = snapshot.val();
-                const incomingCallId = snapshot.key;
-                if (callData.callee === currentUser.email && callData.caller !== currentUser.email) {
-                    callId = incomingCallId;
-                    document.getElementById('callMessage').textContent = `${callData.caller} is calling you!`;
-                    document.getElementById('callPopup').style.display = 'block';
+
+                // Basic validation and check status
+                if (!callData || callData.status !== 'ringing') {
+                     console.log(`Ignoring call ${callKey}: Invalid data or status is not 'ringing' (${callData?.status})`);
+                     return;
                 }
+
+                // Prevent handling if already in a call or dealing with another incoming call
+                if (peerConnection || incomingCallId) {
+                    console.log(`Ignoring call ${callKey}: Already in a call or handling another incoming call.`);
+                    // Optional: Could automatically reject this call if desired
+                    // db.ref(`calls/${callKey}`).update({ status: 'busy' });
+                    return;
+                }
+
+                 // **Crucial Check**: Verify call data *still exists* right before showing popup
+                 try {
+                     const currentSnapshot = await db.ref(`calls/${callKey}`).once('value');
+                     if (!currentSnapshot.exists() || currentSnapshot.val().status !== 'ringing') {
+                         console.log(`Ignoring call ${callKey}: Call cancelled or status changed before popup shown.`);
+                         return;
+                     }
+                     // Data verified, proceed
+                     incomingCallId = callKey;
+                     incomingCallData = currentSnapshot.val(); // Store the fetched data
+
+                     console.log(`Incoming call detected: ${incomingCallId} from ${incomingCallData.callerEmail}`);
+                     callMessage.textContent = `${incomingCallData.callerEmail || 'Someone'} is calling...`;
+                     callPopup.style.display = 'block';
+
+                     // Listen for status changes ONLY for this specific incoming call
+                     listenForCallStatus(incomingCallId);
+
+                 } catch (error) {
+                     console.error(`Error verifying incoming call ${callKey}:`, error);
+                 }
+
+            }, (error) => {
+                 console.error("Error listening for incoming calls:", error);
             });
         }
 
         async function joinVideoCall() {
-            if (peerConnection || localStream) {
-                alert("A call is already in progress!");
+            // Use the stored incomingCallId and incomingCallData
+            if (!incomingCallId || !incomingCallData || peerConnection) {
+                alert("No valid incoming call to join or already in a call.");
+                console.error("Join attempt failed: No valid call ID or data, or already in call.", { incomingCallId, incomingCallData: !!incomingCallData, peerConnection: !!peerConnection });
+                hideCallPopup();
+                cleanupCall("Invalid state for joining call."); // Clean up if state is wrong
+                return;
+            }
+             console.log("Attempting to join call:", incomingCallId);
+             const callToJoinId = incomingCallId; // Copy to local variable in case state changes
+             const callToJoinData = incomingCallData;
+             const callerUid = callToJoinData.callerUid;
+             const offer = callToJoinData.offer;
+
+             hideCallPopup(); // Hide popup immediately
+
+             // **Critical**: Check again if the call is still valid right before processing
+             try {
+                  const currentSnapshot = await db.ref(`calls/${callToJoinId}`).once('value');
+                  if (!currentSnapshot.exists() || currentSnapshot.val().status !== 'ringing') {
+                       console.warn(`Call ${callToJoinId} is no longer available or ringing.`);
+                       alert("This call is no longer available.");
+                       cleanupCall("Call became unavailable before joining.");
+                       return;
+                  }
+                  // Call is still valid, proceed.
+             } catch(error) {
+                  console.error(`Error re-verifying call ${callToJoinId} before joining:`, error);
+                  cleanupCall("Failed to verify call before joining.");
+                  return;
+             }
+
+
+            if (!await getMediaStream()) {
+                cleanupCall("Failed to get media for joining call.");
+                // Update status to indicate failure? Maybe not necessary if cleanup is done.
+                // db.ref(`calls/${callToJoinId}`).update({ status: 'failed_media' });
                 return;
             }
 
-            pendingIceCandidates = [];
+            // Ensure cleanup of any residual listeners
+            removeCallListeners();
 
-            try {
-                const constraints = {
-                    video: { facingMode: currentFacingMode, width: { ideal: 1280 }, height: { ideal: 720 } },
-                    audio: true
-                };
-                localStream = await navigator.mediaDevices.getUserMedia(constraints);
-                document.getElementById('localVideo').srcObject = localStream;
-
-                const snapshot = await db.ref(`calls/${callId}`).get();
-                const callData = snapshot.val();
-                if (!callData || !callData.offer) {
-                    alert('Call not found');
-                    cleanupCall();
-                    return;
-                }
-
-                peerConnection = new RTCPeerConnection(configuration);
-                setupPeerConnection();
-
-                localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
-
-                await peerConnection.setRemoteDescription(new RTCSessionDescription(callData.offer));
-                console.log('Offer received and set:', callData.offer);
-
-                const answer = await peerConnection.createAnswer();
-                await peerConnection.setLocalDescription(answer);
-                console.log('Answer created and sent:', answer);
-
-                await db.ref(`calls/${callId}/answer`).set({
-                    type: answer.type,
-                    sdp: answer.sdp
-                });
-
-                applyPendingIceCandidates();
-
-                document.getElementById('callPopup').style.display = 'none';
-                showVideoCallUI();
-            } catch (error) {
-                console.error('Error joining video call:', error);
-                alert(`Failed to join video call: ${error.message}`);
-                cleanupCall();
+            if (!callerUid || !offer) {
+                console.error("Invalid call data received:", callToJoinData);
+                cleanupCall("Invalid call data for joining.");
+                return;
             }
+
+             try {
+                 peerConnection = new RTCPeerConnection(configuration);
+                 console.log("RTCPeerConnection created for joining call.");
+                 setupPeerConnectionListeners(); // Generic listeners
+
+                 localStream.getTracks().forEach(track => {
+                     peerConnection.addTrack(track, localStream);
+                     console.log("Local track added:", track.kind);
+                 });
+
+                 await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
+                 console.log("Remote description (offer) set.");
+
+                 // Apply any candidates received early
+                 await applyPendingIceCandidates();
+
+                 const answer = await peerConnection.createAnswer();
+                 await peerConnection.setLocalDescription(answer);
+                 console.log("Answer created and set as local description.");
+
+                 // Send Answer and Update Status
+                 await db.ref(`calls/${callToJoinId}`).update({
+                     answer: { type: answer.type, sdp: answer.sdp },
+                     status: 'answered'
+                 });
+                 console.log("Answer sent to Firebase and status updated.");
+
+                 // Listen for Caller's Candidates
+                 listenForRemoteCandidates(callerUid, callToJoinId);
+
+                  // Listen for call status changes (e.g., ended by caller)
+                 listenForCallStatus(callToJoinId);
+
+                 showVideoCallUI();
+
+             } catch (error) {
+                 console.error('Error joining call:', error);
+                 cleanupCall(`Failed to join call: ${error.message}`);
+                 alert(`Failed to join call: ${error.message}`);
+                 // Attempt to update status to reflect failure
+                 db.ref(`calls/${callToJoinId}`).update({ status: 'failed_join' }).catch(()=>{});
+             }
         }
 
         function rejectCall() {
-            if (callId) {
-                db.ref(`calls/${callId}`).remove().catch(error => console.error("Error removing call:", error));
-                callId = null;
+            const callIdToReject = incomingCallId; // Capture current ID
+            if (callIdToReject) {
+                console.log("Rejecting call:", callIdToReject);
+                db.ref(`calls/${callIdToReject}`).update({ status: 'rejected' })
+                    .catch(error => console.error("Error updating call status to rejected:", error))
+                    .finally(() => {
+                        // Cleanup happens regardless of DB update success
+                        hideCallPopup();
+                        cleanupCall("Call rejected by user"); // Cleanup local state
+                    });
+            } else {
+                // Should not happen if popup was visible, but handle anyway
+                console.warn("Reject called but no incomingCallId was set.");
+                hideCallPopup();
+                 cleanupCall("Reject called without active incoming call");
             }
-            document.getElementById('callPopup').style.display = 'none';
         }
 
-        function setupPeerConnection() {
-            remoteStream = new MediaStream();
-            document.getElementById('remoteVideo').srcObject = remoteStream;
+        // Sets up generic PeerConnection listeners
+        function setupPeerConnectionListeners() {
+            if (!peerConnection) return;
 
             peerConnection.onicecandidate = event => {
                 if (event.candidate) {
-                    db.ref(`calls/${callId}/candidates`).push({
-                        candidate: event.candidate.toJSON(),
-                        sender: currentUser.email
-                    }).catch(error => console.error("Error sending ICE candidate:", error));
+                    const currentCallId = outgoingCallId || incomingCallId;
+                    if (currentCallId && currentUser) {
+                        // console.log("Sending ICE candidate:", event.candidate.sdpMid); // Less verbose log
+                        db.ref(`calls/${currentCallId}/candidates/${currentUser.uid}`)
+                            .push(event.candidate.toJSON())
+                            .catch(error => console.error("Error sending ICE candidate:", error));
+                    }
                 }
             };
 
+            remoteStream = new MediaStream();
+            remoteVideo.srcObject = remoteStream;
             peerConnection.ontrack = event => {
-                console.log('Received remote track:', event.track);
-                event.streams[0].getTracks().forEach(track => {
-                    remoteStream.addTrack(track);
-                });
+                 console.log('Remote track received:', event.track.kind);
+                 event.streams[0].getTracks().forEach(track => {
+                     console.log('Adding track to remote stream:', track.kind);
+                     remoteStream.addTrack(track);
+                 });
+                 remoteVideo.style.display = 'block';
             };
 
             peerConnection.oniceconnectionstatechange = () => {
-                console.log('ICE Connection State:', peerConnection.iceConnectionState);
-                if (peerConnection.iceConnectionState === 'disconnected' || peerConnection.iceConnectionState === 'failed') {
-                    cleanupCall();
+                const state = peerConnection ? peerConnection.iceConnectionState : 'closed';
+                console.log('ICE Connection State Changed:', state);
+                switch (state) {
+                    case 'connected': console.log('Peers connected!'); break;
+                    case 'disconnected': console.warn('Peers disconnected.'); break; // Often recovers
+                    case 'failed':
+                         console.error('ICE connection failed.');
+                         cleanupCall("ICE connection failed.");
+                         break;
+                    case 'closed':
+                         console.log('ICE connection closed.');
+                         // Don't always cleanup here, might be intentional hangup
+                         // cleanupCall("ICE connection closed");
+                         break;
                 }
             };
 
-            db.ref(`calls/${callId}/candidates`).on('child_added', snapshot => {
-                const data = snapshot.val();
-                if (data.sender !== currentUser.email) {
-                    const candidate = new RTCIceCandidate(data.candidate);
-                    if (peerConnection.remoteDescription) {
-                        peerConnection.addIceCandidate(candidate).catch(error => {
-                            console.error('Error adding ICE candidate:', error);
-                        });
-                    } else {
-                        pendingIceCandidates.push(candidate);
-                        console.log('Queued ICE candidate:', candidate);
-                    }
-                }
+             peerConnection.onsignalingstatechange = () => {
+                 if (peerConnection) console.log('Signaling State Changed:', peerConnection.signalingState);
+             };
+             peerConnection.onicecandidateerror = (event) => console.error("ICE Candidate Error:", event);
+
+            console.log("PeerConnection listeners set up.");
+        }
+
+        // Listen for candidates from a specific partner for a specific call
+        function listenForRemoteCandidates(partnerUid, callId) {
+             if (!partnerUid || !callId) return;
+             console.log(`Listening for candidates from ${partnerUid} for call ${callId}`);
+             const remoteCandidatesRef = db.ref(`calls/${callId}/candidates/${partnerUid}`);
+             const handler = (snapshot) => handleRemoteCandidate(snapshot); // Wrap in named handler
+
+             // Store reference and handler for cleanup
+             callListeners.candidates = callListeners.candidates || {};
+             callListeners.candidates[partnerUid] = { ref: remoteCandidatesRef, handler: handler };
+
+             remoteCandidatesRef.on('child_added', handler, (error) => {
+                 console.error(`Error listening for remote candidates from ${partnerUid}:`, error);
+                 cleanupCall("Failed to exchange connection details.");
+             });
+        }
+
+        // Listen for status changes of the *current* call (incoming or outgoing)
+        function listenForCallStatus(callId) {
+            if (!callId) return;
+            console.log(`Listening for status changes for call ${callId}`);
+            const statusRef = db.ref(`calls/${callId}/status`);
+            const handler = (snapshot) => {
+                 if (!snapshot.exists()) {
+                     console.log(`Call ${callId} was removed.`);
+                     cleanupCall("Call document removed.");
+                     return;
+                 }
+                 const status = snapshot.val();
+                 console.log(`Call ${callId} status changed to: ${status}`);
+                 // Handle specific statuses that trigger cleanup
+                 if (['rejected', 'ended', 'cancelled', 'failed_join', 'failed_media'].includes(status)) {
+                      const reason = `Call status became ${status}`;
+                      // If it's an incoming call popup being shown, hide it
+                      if (callId === incomingCallId && callPopup.style.display === 'block') {
+                          hideCallPopup();
+                      }
+                      cleanupCall(reason);
+                 }
+            };
+
+            callListeners.status = { ref: statusRef, handler: handler };
+            statusRef.on('value', handler, (error) => {
+                 console.error(`Error listening to call status for ${callId}:`, error);
+                 cleanupCall("Error monitoring call status.");
             });
         }
 
-        async function applyPendingIceCandidates() {
-            while (pendingIceCandidates.length > 0) {
-                const candidate = pendingIceCandidates.shift();
-                try {
-                    await peerConnection.addIceCandidate(candidate);
-                    console.log('Applied pending ICE candidate:', candidate);
-                } catch (error) {
-                    console.error('Error applying pending ICE candidate:', error);
-                }
-            }
+
+        // Detach all active call-related DB listeners
+        function removeCallListeners() {
+             console.log("Removing call listeners...");
+             if (callListeners.answer) {
+                 callListeners.answer.ref.off('value', callListeners.answer.handler);
+                 console.log(" - Answer listener removed.");
+             }
+             if (callListeners.candidates) {
+                 Object.entries(callListeners.candidates).forEach(([uid, listener]) => {
+                     listener.ref.off('child_added', listener.handler);
+                     console.log(` - Candidates listener removed for ${uid}.`);
+                 });
+             }
+             if (callListeners.status) {
+                 callListeners.status.ref.off('value', callListeners.status.handler);
+                 console.log(" - Status listener removed.");
+             }
+             callListeners = {}; // Reset the storage object
         }
 
-        async function switchCamera() {
-            try {
-                const newFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
-                const constraints = {
-                    video: { facingMode: newFacingMode, width: { ideal: 1280 }, height: { ideal: 720 } },
-                    audio: true
-                };
 
-                const newStream = await navigator.mediaDevices.getUserMedia(constraints);
+        // Generic handler for receiving remote candidates
+        function handleRemoteCandidate(snapshot) {
+             if (snapshot.exists() && peerConnection) {
+                 try {
+                    const candidate = new RTCIceCandidate(snapshot.val());
+                    // console.log("Received remote ICE candidate:", candidate.sdpMid); // Less verbose
+                    if (peerConnection.remoteDescription) {
+                        peerConnection.addIceCandidate(candidate).catch(e => console.error('Error adding received ICE candidate:', e));
+                    } else {
+                        pendingIceCandidates.push(candidate);
+                        console.log("Queued remote ICE candidate.");
+                    }
+                 } catch (e) {
+                      console.error("Error processing received ICE candidate:", e, snapshot.val());
+                 }
+             }
+         }
 
-                if (localStream) {
-                    localStream.getTracks().forEach(track => track.stop());
-                }
+        // Handler for receiving the answer (used by the caller)
+        async function handleAnswer(snapshot) {
+             const answer = snapshot.val();
+             if (answer && peerConnection && !peerConnection.currentRemoteDescription) {
+                 console.log('Received answer.');
+                 try {
+                     await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
+                     console.log("Remote description (answer) set.");
+                      await applyPendingIceCandidates();
+                 } catch (error) {
+                     console.error('Error setting remote description (answer):', error);
+                     cleanupCall("Failed to process answer.");
+                 }
+             }
+         }
 
-                if (peerConnection) {
-                    const [videoTrack] = newStream.getVideoTracks();
-                    const senders = peerConnection.getSenders();
-                    const videoSender = senders.find(sender => sender.track?.kind === 'video');
-                    if (videoSender) {
-                        await videoSender.replaceTrack(videoTrack);
+        async function applyPendingIceCandidates() {
+             if (!peerConnection || !peerConnection.remoteDescription) {
+                 console.warn("Cannot apply pending candidates: PeerConnection or remote description not ready.");
+                 return;
+             }
+             if (pendingIceCandidates.length > 0) {
+                console.log(`Applying ${pendingIceCandidates.length} pending ICE candidates.`);
+                // Use Promise.all for potentially faster application, though sequential might be safer
+                const applying = pendingIceCandidates.slice(); // Copy before clearing
+                pendingIceCandidates = []; // Clear queue immediately
+                for (const candidate of applying) {
+                    try {
+                        await peerConnection.addIceCandidate(candidate);
+                        // console.log('Applied pending ICE candidate:', candidate.sdpMid);
+                    } catch (error) {
+                        console.error('Error applying pending ICE candidate:', error);
+                        // Decide if you need to re-queue or handle the error
                     }
                 }
+                console.log("Finished applying pending candidates.");
+             }
+         }
 
-                localStream = newStream;
-                document.getElementById('localVideo').srcObject = newStream;
-                currentFacingMode = newFacingMode;
+        async function switchCamera() {
+            if (!localStream || !peerConnection) return;
+            const videoTrack = localStream.getVideoTracks()[0];
+            if (!videoTrack) return;
 
-                if (isAudioMuted) localStream.getAudioTracks()[0].enabled = false;
-                if (isVideoOff) localStream.getVideoTracks()[0].enabled = false;
+            videoTrack.stop(); // Stop current track first
+
+            try {
+                currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
+                const constraints = {
+                    video: { facingMode: currentFacingMode, width: { ideal: 640 }, height: { ideal: 480 } },
+                };
+                const newStream = await navigator.mediaDevices.getUserMedia(constraints);
+                const newVideoTrack = newStream.getVideoTracks()[0];
+
+                const sender = peerConnection.getSenders().find(s => s.track?.kind === 'video');
+                if (sender) {
+                    await sender.replaceTrack(newVideoTrack);
+                    console.log("Camera track replaced in PeerConnection.");
+                } else {
+                    console.warn("Could not find video sender to replace track.");
+                }
+
+                localStream.removeTrack(videoTrack);
+                localStream.addTrack(newVideoTrack);
+                localVideo.srcObject = null; // Force refresh
+                localVideo.srcObject = localStream;
+                console.log("Local video updated with new camera track.");
+
+                 if (isVideoOff) newVideoTrack.enabled = false; // Re-apply video off state
+
             } catch (error) {
                 console.error("Error switching camera:", error);
                 alert("Failed to switch camera: " + error.message);
@@ -1102,89 +1756,164 @@
         }
 
         function toggleAudio() {
-            if (localStream) {
-                const audioTrack = localStream.getAudioTracks()[0];
-                if (audioTrack) {
-                    isAudioMuted = !isAudioMuted;
-                    audioTrack.enabled = !isAudioMuted;
-                    document.getElementById('muteButton').innerHTML = isAudioMuted ?
-                        `<i class="fa-solid fa-microphone-slash fa-lg" style="color: #ff3b30;"></i>` :
-                        `<i class="fa-solid fa-microphone fa-lg" style="color: #ffffff;"></i>`;
-                }
+            if (!localStream) return;
+            const audioTracks = localStream.getAudioTracks();
+            if (audioTracks.length > 0) {
+                isAudioMuted = !isAudioMuted;
+                audioTracks.forEach(track => track.enabled = !isAudioMuted);
+                muteButton.innerHTML = isAudioMuted ?
+                    `<i class="fa-solid fa-microphone-slash fa-lg"></i>` :
+                    `<i class="fa-solid fa-microphone fa-lg"></i>`;
+                muteButton.classList.toggle('active-state', isAudioMuted);
+                 console.log("Audio " + (isAudioMuted ? "muted" : "unmuted"));
             }
         }
 
         function toggleVideo() {
-            if (localStream) {
-                const videoTrack = localStream.getVideoTracks()[0];
-                if (videoTrack) {
-                    isVideoOff = !isVideoOff;
-                    videoTrack.enabled = !isVideoOff;
-                    document.getElementById('videoButton').innerHTML = isVideoOff ?
-                        `<i class="fa-solid fa-video-slash fa-lg" style="color: #ff3b30;"></i>` :
-                        `<i class="fa-solid fa-video fa-lg" style="color: #ffffff;"></i>`;
-                }
-            }
+            if (!localStream) return;
+            const videoTracks = localStream.getVideoTracks();
+             if (videoTracks.length > 0) {
+                isVideoOff = !isVideoOff;
+                videoTracks.forEach(track => track.enabled = !isVideoOff);
+                videoButton.innerHTML = isVideoOff ?
+                    `<i class="fa-solid fa-video-slash fa-lg"></i>` :
+                    `<i class="fa-solid fa-video fa-lg"></i>`;
+                videoButton.classList.toggle('active-state', isVideoOff);
+                console.log("Video " + (isVideoOff ? "off" : "on"));
+             }
         }
 
-        function cleanupCall() {
-            console.log('Cleaning up call');
+        function cleanupCall(reason = "Call ended normally") {
+             console.log(`Cleaning up call resources. Reason: ${reason}`);
+
+             // 1. Remove Database Listeners FIRST to prevent reactions to cleanup updates
+              removeCallListeners();
+
+            // 2. Close PeerConnection
+            if (peerConnection) {
+                peerConnection.onicecandidate = null;
+                peerConnection.ontrack = null;
+                peerConnection.oniceconnectionstatechange = null;
+                peerConnection.onsignalingstatechange = null;
+                peerConnection.onicecandidateerror = null;
+                if (peerConnection.signalingState !== 'closed') {
+                     peerConnection.close();
+                     console.log("PeerConnection closed.");
+                }
+                peerConnection = null;
+            }
+
+            // 3. Stop Media Streams
             if (localStream) {
                 localStream.getTracks().forEach(track => track.stop());
                 localStream = null;
-                document.getElementById('localVideo').srcObject = null;
+                localVideo.srcObject = null;
+                 console.log("Local media stream stopped.");
             }
-            if (remoteStream) {
+             if (remoteStream) {
                 remoteStream.getTracks().forEach(track => track.stop());
                 remoteStream = null;
-                document.getElementById('remoteVideo').srcObject = null;
-            }
-            if (peerConnection) {
-                peerConnection.ontrack = null;
-                peerConnection.onicecandidate = null;
-                peerConnection.oniceconnectionstatechange = null;
-                peerConnection.close();
-                peerConnection = null;
-            }
-            if (callId) {
-                db.ref(`calls/${callId}`).remove().catch(error => console.error("Error removing call:", error));
-                db.ref(`calls/${callId}/candidates`).off();
-                db.ref(`calls/${callId}/answer`).off();
-                callId = null;
-            }
+                remoteVideo.srcObject = null;
+                console.log("Remote media stream stopped.");
+             }
 
+            // 4. Update Call Status (optional, do this *after* cleanup to avoid listener loops)
+             const callIdToUpdate = outgoingCallId || incomingCallId;
+             if (callIdToUpdate) {
+                  db.ref(`calls/${callIdToUpdate}/status`).once('value', (snap) => {
+                       // Only update if not already ended/rejected etc. to avoid overwriting final state
+                       if (snap.exists() && !['ended', 'rejected', 'cancelled', 'failed_join', 'failed_media'].includes(snap.val())) {
+                           db.ref(`calls/${callIdToUpdate}`).update({ status: 'ended' })
+                               .catch(err => console.warn("Could not update call status to ended:", err));
+                       }
+                       // Consider removing the call entry after a delay or based on status
+                       // setTimeout(() => db.ref(`calls/${callIdToUpdate}`).remove(), 60000); // e.g., remove after 1 min
+                  });
+             }
+
+            // 5. Reset State Variables
+            outgoingCallId = null;
+            incomingCallId = null;
+            incomingCallData = null; // Clear stored incoming data
+            pendingIceCandidates = [];
             isAudioMuted = false;
             isVideoOff = false;
-            pendingIceCandidates = [];
-            document.getElementById('videoCallContainer').style.display = 'none';
-            document.getElementById('callPopup').style.display = 'none';
-            document.getElementById('muteButton').innerHTML = `<i class="fa-solid fa-microphone fa-lg" style="color: #ffffff;"></i>`;
-            document.getElementById('videoButton').innerHTML = `<i class="fa-solid fa-video fa-lg" style="color: #ffffff;"></i>`;
+
+            // 6. Hide UI Elements
+            videoCallContainer.style.display = 'none';
+            hideCallPopup(); // Ensure popup is hidden
+
+            // Reset button states
+            muteButton.innerHTML = `<i class="fa-solid fa-microphone fa-lg"></i>`;
+            videoButton.innerHTML = `<i class="fa-solid fa-video fa-lg"></i>`;
+            muteButton.classList.remove('active-state');
+            videoButton.classList.remove('active-state');
+
+             console.log("Call cleanup complete.");
         }
 
         function showVideoCallUI() {
-            document.getElementById('videoCallContainer').style.display = 'block';
+            videoCallContainer.style.display = 'block';
+            isAudioMuted = false;
+            isVideoOff = false;
+            muteButton.innerHTML = `<i class="fa-solid fa-microphone fa-lg"></i>`;
+            videoButton.innerHTML = `<i class="fa-solid fa-video fa-lg"></i>`;
+            muteButton.classList.remove('active-state');
+            videoButton.classList.remove('active-state');
+            console.log("Video call UI displayed.");
         }
 
-        document.getElementById('muteButton').addEventListener('click', toggleAudio);
-        document.getElementById('videoButton').addEventListener('click', toggleVideo);
-        document.getElementById('hangupButton').addEventListener('click', cleanupCall);
-        document.getElementById('backButton').addEventListener('click', goBackToChatList);
+         function hideCallPopup() {
+             if (callPopup.style.display !== 'none') {
+                 callPopup.style.display = 'none';
+                 // Stop listening specifically to the status of the call being declined/ignored
+                 if(callListeners.status && incomingCallId && callListeners.status?.ref?.parent?.key === incomingCallId){
+                     callListeners.status.ref.off('value', callListeners.status.handler);
+                     delete callListeners.status;
+                      console.log(` - Status listener removed for ignored incoming call ${incomingCallId}.`);
+                 }
+                 incomingCallId = null; // Clear ID if popup is dismissed
+                 incomingCallData = null; // Clear data as well
+                 console.log("Incoming call popup hidden.");
+             }
+         }
 
-        document.getElementById('messageInput').addEventListener('keypress', function(e) {
+        // --- Event Listeners ---
+        hangupButton.addEventListener('click', () => cleanupCall("User hung up"));
+        muteButton.addEventListener('click', toggleAudio);
+        videoButton.addEventListener('click', toggleVideo);
+
+        messageInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
-                sendMessage(e);
+                sendMessage();
             }
         });
 
-        window.addEventListener('beforeunload', () => {
-            cleanupCall();
+        messageInput.addEventListener('input', () => {
+            messageInput.style.height = 'auto';
+            messageInput.style.height = `${Math.min(messageInput.scrollHeight, 100)}px`;
         });
 
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !RTCPeerConnection) {
-            alert('Your browser does not support WebRTC, which is required for video calls.');
+        window.addEventListener('beforeunload', () => {
+            if (presenceRef) {
+                 presenceRef.set({ online: false, last_seen: firebase.database.ServerValue.TIMESTAMP });
+            }
+            cleanupCall("Page closed");
+        });
+
+        // --- Initial Checks ---
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.RTCPeerConnection) {
+            alert('WebRTC is not supported by your browser. Video calls will not work.');
+            videoCallButton.style.display = 'none';
         }
+
+        // Ensure Database URL is present
+        if (!firebaseConfig.databaseURL) {
+             alert("Firebase configuration is missing the 'databaseURL'. Realtime Database features (chat, calls, presence) will not work.");
+             console.error("Firebase configuration is missing the 'databaseURL'.");
+        }
+
     </script>
 </body>
 </html>
